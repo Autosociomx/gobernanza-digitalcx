@@ -16,7 +16,7 @@ This  [vLLM-Ascend](https://docs.vllm.ai/projects/ascend/en/latest/tutorials/mod
 
 # SGLang
 
-This  [sgLang](https://github.com/sgl-project/sglang/blob/main/docs/platforms/ascend/ascend_npu_glm5_2_examples.md) document demonstrates how to deploy GLM-5.2 on sglang. It shows the main verification steps of the model, including supported features, feature configuration, environment preparation, single-node and multi-node deployment, accuracy and performance evaluation.
+This  [sgLang](https://github.com/sgl-project/sglang/blob/main/docs_new/docs/hardware-platforms/ascend-npus/ascend_npu_glm5.2_examples.mdx) document demonstrates how to deploy GLM-5.2 on sglang. It shows the main verification steps of the model, including supported features, feature configuration, environment preparation, single-node and multi-node deployment, accuracy and performance evaluation.
 
 # xLLM
 
