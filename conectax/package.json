@@ -1,0 +1,8 @@
+{
+  "name": "conectax-demo",
+  "version": "1.0.0",
+  "description": "ConectaX - Demo de triaje digital para campaña Nayarit Digital",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0"
+  }
+}
