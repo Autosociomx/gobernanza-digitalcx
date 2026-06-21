@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConectaX — Triaje Digital | Nayarit Digital</title>
+  <style>
+    :root {
+      --azul: #1B2B5C;
+      --azul-claro: #2563EB;
+      --dorado: #F5A623;
+      --gris: #F8FAFC;
+      --texto: #1E293B;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gris);
+      min-height: 100vh;
+      color: var(--texto);
+    }
+    header {
+      background: var(--azul);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #E63946 0%, #F5A623 25%, #22C55E 50%, #2563EB 75%, #9333EA 100%);
+    }
+    .logo-icon {
+      width: 44px; height: 44px;
+      background: var(--dorado);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .logo-text h1 { color: white; font-size: 1.3rem; font-weight: 700; }
+    .logo-text span { color: var(--dorado); font-size: 0.75rem; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+    .badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    main { max-width: 680px; margin: 0 auto; padding: 32px 16px; }
+    .hero { text-align: center; margin-bottom: 32px; }
+    .hero h2 { font-size: 1.8rem; font-weight: 700; color: var(--azul); margin-bottom: 8px; }
+    .hero p { color: #64748B; font-size: 1rem; line-height: 1.5; }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+    }
+    .card label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--azul);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    select, textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #E2E8F0;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      color: var(--texto);
+      background: white;
+      transition: border-color 0.2s;
+      outline: none;
+      margin-bottom: 20px;
+    }
+    select:focus, textarea:focus { border-color: var(--azul-claro); }
+    textarea { height: 120px; resize: none; line-height: 1.5; }
+    textarea::placeholder { color: #94A3B8; }
+    .btn-consultar {
+      width: 100%;
+      padding: 16px;
+      background: var(--azul);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-consultar:hover { background: #243875; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(27,43,92,0.3); }
+    .btn-consultar:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .resultado { display: none; animation: fadeIn 0.4s ease; }
+    .resultado.visible { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .semaforo {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+    .semaforo-icon { font-size: 3rem; line-height: 1; }
+    .semaforo-info h3 { font-size: 1.3rem; font-weight: 700; }
+    .semaforo-info p { font-size: 0.9rem; opacity: 0.8; margin-top: 2px; }
+    .urgencia-alta { background: #FEF2F2; color: #991B1B; }
+    .urgencia-media { background: #FFFBEB; color: #92400E; }
+    .urgencia-baja { background: #F0FDF4; color: #166534; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .info-item { background: var(--gris); border-radius: 12px; padding: 16px; }
+    .info-item .label { font-size: 0.72rem; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .info-item .value { font-size: 0.95rem; font-weight: 600; color: var(--texto); }
+    .indicacion-box {
+      background: #EFF6FF;
+      border-left: 4px solid var(--azul-claro);
+      border-radius: 0 12px 12px 0;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+    .indicacion-box p { color: #1E3A8A; font-size: 0.95rem; line-height: 1.6; }
+    .cie-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #F1F5F9;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      color: #475569;
+      border: 1px solid #E2E8F0;
+    }
+    .btn-nueva {
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      color: var(--azul);
+      border: 2px solid var(--azul);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 16px;
+    }
+    .btn-nueva:hover { background: var(--azul); color: white; }
+    .loading { display: none; text-align: center; padding: 40px; }
+    .loading.visible { display: block; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #E2E8F0;
+      border-top-color: var(--azul);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
+    .pillar { background: white; border-radius: 14px; padding: 16px 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .pillar .icon { font-size: 1.8rem; margin-bottom: 8px; }
+    .pillar .num { font-size: 1.4rem; font-weight: 800; color: var(--azul); }
+    .pillar .desc { font-size: 0.72rem; color: #64748B; margin-top: 2px; line-height: 1.3; }
+    footer { text-align: center; padding: 24px; color: #94A3B8; font-size: 0.8rem; }
+    @media (max-width: 480px) {
+      .info-grid { grid-template-columns: 1fr; }
+      .pillars { grid-template-columns: 1fr; }
+      .hero h2 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">🏥</div>
+  <div class="logo-text" style="margin-left:10px">
+    <h1>ConectaX</h1>
+    <span>Nayarit Digital · Triaje CIE-11</span>
+  </div>
+  <div class="badge">Demo de Campaña</div>
+</header>
+
+<main>
+  <div class="hero">
+    <h2>¿Cómo te sientes hoy?</h2>
+    <p>Describe tus síntomas y ConectaX te orientará al centro de salud más cercano con el tiempo de espera estimado.</p>
+  </div>
+
+  <div class="card" id="formCard">
+    <label>Tu municipio</label>
+    <select id="municipio">
+      <option value="Tepic">Tepic</option>
+      <option value="Bahía de Banderas">Bahía de Banderas</option>
+      <option value="Compostela">Compostela</option>
+      <option value="Santiago Ixcuintla">Santiago Ixcuintla</option>
+      <option value="Tuxpan">Tuxpan</option>
+      <option value="Acaponeta">Acaponeta</option>
+      <option value="Ruíz">Ruíz</option>
+      <option value="Ixtlán del Río">Ixtlán del Río</option>
+      <option value="Rosamorada">Rosamorada</option>
+      <option value="El Nayar">El Nayar</option>
+    </select>
+
+    <label>Describe tus síntomas</label>
+    <textarea
+      id="sintomas"
+      placeholder="Ej: Tengo fiebre de 38.5°C desde ayer, dolor de cabeza fuerte y me duele el cuerpo..."
+    ></textarea>
+
+    <button class="btn-consultar" id="btnConsultar" onclick="consultar()">
+      <span>🔍</span> Consultar ConectaX
+    </button>
+  </div>
+
+  <div class="loading card" id="loading">
+    <div class="spinner"></div>
+    <p style="color:#64748B;font-weight:500">Analizando síntomas con estándar CIE-11...</p>
+  </div>
+
+  <div class="resultado" id="resultado">
+    <div class="semaforo" id="semaforo">
+      <div class="semaforo-icon" id="semaforoEmoji"></div>
+      <div class="semaforo-info">
+        <h3 id="nivelUrgencia"></h3>
+        <p id="codigoDesc"></p>
+      </div>
+    </div>
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="label">⏱ Tiempo de espera</div>
+        <div class="value" id="tiempoEspera"></div>
+      </div>
+      <div class="info-item">
+        <div class="label">🏥 Centro de salud</div>
+        <div class="value" id="centroSalud"></div>
+      </div>
+    </div>
+    <div class="indicacion-box">
+      <p id="indicacion"></p>
+    </div>
+    <div>
+      <span class="cie-badge">📋 <span id="cieCodigo"></span></span>
+    </div>
+    <button class="btn-nueva" onclick="nuevaConsulta()">← Nueva consulta</button>
+  </div>
+
+  <div class="pillars">
+    <div class="pillar">
+      <div class="icon">⏰</div>
+      <div class="num">50%</div>
+      <div class="desc">Reducción en tiempos de espera hospitalaria</div>
+    </div>
+    <div class="pillar">
+      <div class="icon">🏥</div>
+      <div class="num">285</div>
+      <div class="desc">Unidades de salud en Nayarit conectadas</div>
+    </div>
+    <div class="pillar">
+      <div class="icon">📋</div>
+      <div class="num">CIE-11</div>
+      <div class="desc">Estándar internacional OMS integrado</div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  ConectaX · Nayarit Digital 2027–2033 · Geraldine Ponce<br>
+  <small>Prototipo de campaña. Ante emergencias llama al 911.</small>
+</footer>
+
+<script>
+  async function consultar() {
+    const sintomas = document.getElementById('sintomas').value.trim();
+    const municipio = document.getElementById('municipio').value;
+    if (!sintomas) { alert('Por favor describe tus síntomas.'); return; }
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('loading').classList.add('visible');
+    document.getElementById('resultado').classList.remove('visible');
+    try {
+      const response = await fetch('/api/triage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sintomas, municipio })
+      });
+      const data = await response.json();
+      const urgenciaMap = { 'ALTA': 'urgencia-alta', 'MEDIA': 'urgencia-media', 'BAJA': 'urgencia-baja' };
+      document.getElementById('semaforo').className = 'semaforo ' + (urgenciaMap[data.nivel_urgencia] || 'urgencia-media');
+      document.getElementById('semaforoEmoji').textContent = data.emoji || '🟡';
+      document.getElementById('nivelUrgencia').textContent = 'Urgencia ' + (data.nivel_urgencia || 'MEDIA');
+      document.getElementById('codigoDesc').textContent = data.descripcion_cie11 || '';
+      document.getElementById('tiempoEspera').textContent = data.tiempo_espera || 'N/D';
+      document.getElementById('centroSalud').textContent = data.centro_salud || 'Centro más cercano';
+      document.getElementById('indicacion').textContent = data.indicacion || '';
+      document.getElementById('cieCodigo').textContent = 'Código CIE-11: ' + (data.codigo_cie11 || 'En análisis');
+      document.getElementById('loading').classList.remove('visible');
+      document.getElementById('resultado').classList.add('visible');
+    } catch (error) {
+      document.getElementById('loading').classList.remove('visible');
+      document.getElementById('formCard').style.display = 'block';
+      alert('Error al conectar con ConectaX. Por favor intenta de nuevo.');
+    }
+  }
+  function nuevaConsulta() {
+    document.getElementById('resultado').classList.remove('visible');
+    document.getElementById('sintomas').value = '';
+    document.getElementById('formCard').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+  document.getElementById('sintomas').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.ctrlKey) consultar();
+  });
+</script>
+
+</body>
+</html>
