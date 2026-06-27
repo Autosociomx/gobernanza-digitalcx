@@ -11,15 +11,14 @@
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { height: 100%; overflow: hidden; background: #f0fdf4; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; color: #1e293b; }
-
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; }
 #app { height: 100dvh; display: flex; flex-direction: column; }
 
 /* ── HEADER ── */
 header {
   background: linear-gradient(135deg, #15803d 0%, #166534 100%);
   color: white;
-  padding: 12px 16px 10px;
+  padding: 11px 14px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -28,45 +27,133 @@ header {
   z-index: 100;
 }
 .logo { display: flex; align-items: center; gap: 8px; }
-.logo-icon { font-size: 22px; }
-.logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-.logo-sub { font-size: 11px; opacity: 0.75; letter-spacing: 0.3px; }
-.demo-badge {
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.35);
-  color: white;
-  font-size: 10px;
+.logo-icon { font-size: 20px; }
+.logo-text { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.logo-sub { font-size: 10px; opacity: 0.75; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+#status-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.8px;
-  padding: 3px 7px;
-  border-radius: 4px;
+  padding: 4px 9px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dot-demo { background: #fbbf24; }
+.dot-live { background: #4ade80; animation: pulse 1.5s infinite; }
+.dot-err  { background: #f87171; }
+#btn-cfg {
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ── VIEW SHELL ── */
-.view-wrap { flex: 1; position: relative; overflow: hidden; }
-.view {
-  position: absolute;
+/* ── CONFIG MODAL ── */
+.modal-overlay {
+  position: fixed;
   inset: 0;
-  display: none;
-  flex-direction: column;
-  overflow: hidden;
+  background: rgba(0,0,0,0.55);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
 }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: white;
+  border-radius: 18px;
+  padding: 22px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transform: translateY(12px);
+  transition: transform 0.2s;
+}
+.modal-overlay.open .modal-box { transform: translateY(0); }
+.modal-header { display: flex; align-items: center; gap: 12px; }
+.modal-ico { font-size: 28px; }
+.modal-title { font-size: 16px; font-weight: 800; color: #111827; }
+.modal-sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
+.cfg-label { font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+.cfg-input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1e293b;
+  background: #f9fafb;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.cfg-input:focus { border-color: #16a34a; }
+.cfg-err { font-size: 12px; color: #ef4444; display: none; }
+.btn-connect {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-connect:active { opacity: 0.85; }
+.btn-demo-mode {
+  width: 100%;
+  padding: 11px;
+  background: none;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.modal-divider { border: none; border-top: 1px solid #f1f5f9; }
+.modal-hint { font-size: 11px; color: #9ca3af; text-align: center; line-height: 1.5; }
+.modal-hint a { color: #2563eb; }
+
+/* ── VIEWS ── */
+.view-wrap { flex: 1; position: relative; overflow: hidden; }
+.view { position: absolute; inset: 0; display: none; flex-direction: column; overflow: hidden; }
 .view.active { display: flex; }
 
 /* ── PASAJERO ── */
 #map { flex: 1; min-height: 0; z-index: 1; }
-
 .route-chips {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
+  top: 8px; left: 8px; right: 8px;
   z-index: 500;
   display: flex;
   gap: 6px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding-bottom: 2px;
 }
 .route-chips::-webkit-scrollbar { display: none; }
 .chip {
@@ -82,18 +169,17 @@ header {
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   cursor: pointer;
-  transition: opacity 0.2s;
   -webkit-tap-highlight-color: transparent;
 }
-.chip.dim { opacity: 0.38; }
-.chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.chip.dim { opacity: 0.35; }
+.chip-dot { width: 8px; height: 8px; border-radius: 50%; }
 
 .arrivals {
   flex-shrink: 0;
   background: white;
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
-  max-height: 210px;
+  max-height: 215px;
   overflow-y: auto;
   z-index: 10;
 }
@@ -106,7 +192,6 @@ header {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #f1f5f9;
-  z-index: 1;
 }
 .arrivals-title { font-size: 13px; font-weight: 700; color: #374151; }
 .live-pill {
@@ -114,23 +199,13 @@ header {
   align-items: center;
   gap: 5px;
   font-size: 11px;
-  color: #16a34a;
   font-weight: 700;
   background: #dcfce7;
+  color: #15803d;
   padding: 3px 8px;
   border-radius: 20px;
 }
-.live-dot-sm {
-  width: 6px;
-  height: 6px;
-  background: #16a34a;
-  border-radius: 50%;
-  animation: pulse 1.5s infinite;
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(1.4); }
-}
+.live-dot-sm { width: 6px; height: 6px; background: #16a34a; border-radius: 50%; }
 .arrival-row {
   display: flex;
   align-items: center;
@@ -138,40 +213,25 @@ header {
   gap: 12px;
   border-bottom: 1px solid #f8fafc;
   cursor: pointer;
-  transition: background 0.15s;
 }
 .arrival-row:last-child { border-bottom: none; }
 .arrival-row:active { background: #f0fdf4; }
 .arrival-bar { width: 4px; height: 40px; border-radius: 4px; flex-shrink: 0; }
 .arrival-info { flex: 1; min-width: 0; }
-.arrival-name { font-size: 14px; font-weight: 700; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arrival-name { font-size: 14px; font-weight: 700; color: #111827; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .arrival-dest { font-size: 11px; color: #6b7280; margin-top: 1px; }
 .arrival-time { text-align: right; flex-shrink: 0; }
 .arrival-mins { font-size: 22px; font-weight: 800; color: #16a34a; line-height: 1; }
-.arrival-mins-unit { font-size: 11px; color: #6b7280; }
+.arrival-mins-u { font-size: 11px; color: #6b7280; }
 .arrival-dist { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+.arrival-live-badge { font-size: 10px; font-weight: 700; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 10px; }
+
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
 
 /* ── CHOFER ── */
-#view-chofer {
-  background: #f8fafc;
-  overflow-y: auto;
-  padding: 16px;
-  gap: 12px;
-}
-.card {
-  background: white;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
-}
-.card-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: #6b7280;
-  margin-bottom: 12px;
-}
+#view-chofer { background: #f8fafc; overflow-y: auto; padding: 16px; gap: 12px; }
+.card { background: white; border-radius: 14px; padding: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+.card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #6b7280; margin-bottom: 12px; }
 .route-select {
   width: 100%;
   padding: 12px 40px 12px 14px;
@@ -180,159 +240,87 @@ header {
   font-size: 15px;
   font-weight: 600;
   color: #1e293b;
-  background: #f9fafb;
+  background: #f9fafb url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 10px center / 22px;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 22px;
   cursor: pointer;
 }
 .route-select:focus { outline: none; border-color: #16a34a; }
+
 .gps-row { display: flex; align-items: center; gap: 14px; }
-.gps-icon-wrap {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.3s;
-}
+.gps-icon-wrap { width: 46px; height: 46px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .3s; }
 .gps-icon-wrap.on { background: #dcfce7; }
-.gps-dot {
-  width: 18px;
-  height: 18px;
-  background: #9ca3af;
-  border-radius: 50%;
-  transition: background 0.3s;
-}
+.gps-dot { width: 18px; height: 18px; border-radius: 50%; background: #9ca3af; transition: background .3s; }
 .gps-dot.on { background: #16a34a; animation: pulse 1.5s infinite; }
 .gps-text-label { font-size: 14px; font-weight: 700; color: #111827; }
-.gps-text-sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
+.gps-text-sub { font-size: 12px; color: #6b7280; margin-top: 2px; font-feature-settings: 'tnum'; }
+
 .metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 .metric-box { background: #f9fafb; border-radius: 10px; padding: 12px 8px; text-align: center; }
-.metric-val { font-size: 24px; font-weight: 800; color: #16a34a; line-height: 1; }
-.metric-unit { font-size: 10px; color: #6b7280; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
-.btn-main {
-  width: 100%;
-  padding: 16px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
-  -webkit-tap-highlight-color: transparent;
-}
-.btn-main:active { transform: scale(0.97); }
-.btn-go { background: linear-gradient(135deg, #16a34a, #15803d); color: white; box-shadow: 0 4px 14px rgba(22,163,74,0.35); }
-.btn-stop { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 14px rgba(239,68,68,0.35); }
+.metric-val { font-size: 24px; font-weight: 800; color: #16a34a; line-height: 1; font-feature-settings: 'tnum'; }
+.metric-unit { font-size: 10px; color: #6b7280; margin-top: 3px; text-transform: uppercase; letter-spacing: .4px; }
+
+.bus-id-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f1f5f9; }
+.bus-id-label { font-size: 11px; color: #6b7280; }
+.bus-id-val { font-size: 12px; font-weight: 700; color: #374151; font-family: monospace; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; }
+
+.btn-main { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; letter-spacing: .4px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.btn-main:active { opacity: .88; }
+.btn-go  { background: linear-gradient(135deg, #16a34a, #15803d); color: white; box-shadow: 0 4px 14px rgba(22,163,74,.35); }
+.btn-stop { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 14px rgba(239,68,68,.35); }
 .info-tip { text-align: center; font-size: 12px; color: #6b7280; line-height: 1.7; }
 
+.no-gps-banner {
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #92400e;
+  display: none;
+}
+
 /* ── PATRÓN ── */
-#view-patron {
-  background: #f8fafc;
-  overflow-y: auto;
-  padding: 16px;
-  gap: 12px;
-}
+#view-patron { background: #f8fafc; overflow-y: auto; padding: 16px; gap: 12px; }
 .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.stat-box {
-  background: white;
-  border-radius: 12px;
-  padding: 14px 8px;
-  text-align: center;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
-}
+.stat-box { background: white; border-radius: 12px; padding: 14px 8px; text-align: center; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
 .stat-num { font-size: 30px; font-weight: 800; line-height: 1; }
-.stat-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; }
-.n-blue { color: #2563eb; }
-.n-green { color: #16a34a; }
-.n-red { color: #ef4444; }
-
-.revenue-card {
-  background: linear-gradient(135deg, #15803d 0%, #1a6b40 100%);
-  border-radius: 14px;
-  padding: 18px;
-  color: white;
-}
-.rev-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+.stat-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: .4px; margin-top: 4px; }
+.n-blue { color: #2563eb; } .n-green { color: #16a34a; } .n-red { color: #ef4444; }
+.revenue-card { background: linear-gradient(135deg, #15803d, #1a6b40); border-radius: 14px; padding: 18px; color: white; }
+.rev-label { font-size: 11px; opacity: .8; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
 .rev-amount { font-size: 34px; font-weight: 800; line-height: 1; }
-.rev-amount span { font-size: 18px; font-weight: 400; opacity: 0.75; }
-.rev-sub { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+.rev-amount span { font-size: 18px; font-weight: 400; opacity: .75; }
+.rev-sub { font-size: 12px; opacity: .7; margin-top: 4px; }
 .rev-bar-wrap { margin-top: 16px; }
-.rev-bar-labels { display: flex; justify-content: space-between; font-size: 11px; opacity: 0.8; margin-bottom: 6px; }
-.rev-bar-bg { height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; }
-.rev-bar-fill { height: 100%; width: 67%; background: white; border-radius: 3px; transition: width 1s ease; }
-
+.rev-bar-labels { display: flex; justify-content: space-between; font-size: 11px; opacity: .8; margin-bottom: 6px; }
+.rev-bar-bg { height: 6px; background: rgba(255,255,255,.2); border-radius: 3px; overflow: hidden; }
+.rev-bar-fill { height: 100%; width: 0; background: white; border-radius: 3px; transition: width 1s ease; }
 .section-hd { font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 8px; }
 .fleet-list { display: flex; flex-direction: column; gap: 8px; }
-.fleet-item {
-  background: white;
-  border-radius: 12px;
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-}
+.fleet-item { background: white; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 .unit-ico { font-size: 20px; width: 32px; text-align: center; }
 .unit-info { flex: 1; }
 .unit-id { font-size: 14px; font-weight: 700; color: #111827; }
 .unit-rt { font-size: 12px; color: #6b7280; }
 .unit-right { display: flex; align-items: center; gap: 8px; }
 .unit-spd { font-size: 12px; font-weight: 600; color: #374151; }
-.badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 9px;
-  border-radius: 20px;
-}
-.badge-on { background: #dcfce7; color: #15803d; }
+.badge { font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 20px; }
+.badge-on  { background: #dcfce7; color: #15803d; }
 .badge-off { background: #f3f4f6; color: #6b7280; }
-
-.footer-note {
-  text-align: center;
-  font-size: 12px;
-  color: #6b7280;
-  line-height: 1.7;
-  padding: 4px 0 8px;
-}
+.footer-note { text-align: center; font-size: 12px; color: #6b7280; line-height: 1.7; padding: 4px 0 8px; }
 
 /* ── BOTTOM TABS ── */
-nav {
-  display: flex;
-  background: white;
-  border-top: 1px solid #e5e7eb;
-  flex-shrink: 0;
-  z-index: 100;
-}
-.tab-btn {
-  flex: 1;
-  border: none;
-  background: none;
-  padding: 10px 4px 12px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  color: #9ca3af;
-  transition: color 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
+nav { display: flex; background: white; border-top: 1px solid #e5e7eb; flex-shrink: 0; z-index: 100; }
+.tab-btn { flex: 1; border: none; background: none; padding: 10px 4px 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; color: #9ca3af; -webkit-tap-highlight-color: transparent; }
 .tab-btn.active { color: #16a34a; }
 .tab-icon { font-size: 20px; line-height: 1; }
-.tab-label { font-size: 10px; font-weight: 700; letter-spacing: 0.3px; }
+.tab-label { font-size: 10px; font-weight: 700; letter-spacing: .3px; }
 </style>
 </head>
 <body>
 <div id="app">
 
+  <!-- HEADER -->
   <header>
     <div class="logo">
       <span class="logo-icon">🚌</span>
@@ -341,9 +329,50 @@ nav {
         <div class="logo-sub">Tepic, Nayarit</div>
       </div>
     </div>
-    <span class="demo-badge">DEMO MVP</span>
+    <div class="header-right">
+      <div id="status-pill" onclick="openConfig()">
+        <span class="status-dot dot-demo" id="status-dot"></span>
+        <span id="status-text">DEMO</span>
+      </div>
+      <button id="btn-cfg" onclick="openConfig()" title="Configurar Supabase">⚙️</button>
+    </div>
   </header>
 
+  <!-- CONFIG MODAL -->
+  <div class="modal-overlay" id="cfg-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-ico">🔌</span>
+        <div>
+          <div class="modal-title">Conectar a Supabase</div>
+          <div class="modal-sub">Ingresa las credenciales de tu proyecto</div>
+        </div>
+      </div>
+      <div>
+        <div class="cfg-label">URL del proyecto</div>
+        <input class="cfg-input" id="cfg-url" type="url"
+          placeholder="https://xxxx.supabase.co"
+          autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div>
+        <div class="cfg-label">Anon / Public Key</div>
+        <input class="cfg-input" id="cfg-key" type="text"
+          placeholder="eyJhbGciOiJIUzI1NiIs..."
+          autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="cfg-err" id="cfg-err">⚠️ Credenciales inválidas. Revisa URL y key.</div>
+      <button class="btn-connect" onclick="saveConfig()">Conectar →</button>
+      <hr class="modal-divider">
+      <button class="btn-demo-mode" onclick="closeConfig()">Continuar en modo demo</button>
+      <p class="modal-hint">
+        Necesitas crear la tabla antes.<br>
+        Corre <code>schema.sql</code> en tu proyecto de Supabase.<br>
+        <a href="https://supabase.com/dashboard" target="_blank">supabase.com/dashboard</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- VIEWS -->
   <div class="view-wrap">
 
     <!-- ════ PASAJERO ════ -->
@@ -352,8 +381,8 @@ nav {
       <div id="map"></div>
       <div class="arrivals">
         <div class="arrivals-header">
-          <span class="arrivals-title">Próximos camiones cerca de ti</span>
-          <span class="live-pill"><span class="live-dot-sm"></span>EN VIVO</span>
+          <span class="arrivals-title">Próximos camiones</span>
+          <span class="live-pill"><span class="live-dot-sm" style="animation:pulse 1.5s infinite"></span>EN VIVO</span>
         </div>
         <div id="arrivals-list"></div>
       </div>
@@ -361,6 +390,10 @@ nav {
 
     <!-- ════ CHOFER ════ -->
     <div id="view-chofer" class="view">
+      <div class="no-gps-banner" id="no-gps">
+        ⚠️ GPS no disponible. Necesitas HTTPS para usar geolocalización.
+      </div>
+
       <div class="card">
         <div class="card-title">Selecciona tu ruta</div>
         <select class="route-select" id="chofer-route">
@@ -372,6 +405,7 @@ nav {
           <option>Aguacate-Centro</option>
           <option>Lagos del Country</option>
           <option>2 de Agosto</option>
+          <option>Indeco Premier</option>
         </select>
       </div>
 
@@ -386,23 +420,18 @@ nav {
             <div class="gps-text-sub" id="gps-sub">Inicia tu ruta para activar</div>
           </div>
         </div>
+        <div class="bus-id-row">
+          <span class="bus-id-label">Tu ID de unidad</span>
+          <span class="bus-id-val" id="bus-id-display"></span>
+        </div>
       </div>
 
       <div class="card" id="metrics-card" style="display:none;">
         <div class="card-title">En ruta ahora</div>
         <div class="metrics-grid">
-          <div class="metric-box">
-            <div class="metric-val" id="m-km">0.0</div>
-            <div class="metric-unit">km</div>
-          </div>
-          <div class="metric-box">
-            <div class="metric-val" id="m-spd">0</div>
-            <div class="metric-unit">km/h</div>
-          </div>
-          <div class="metric-box">
-            <div class="metric-val" id="m-time">0:00</div>
-            <div class="metric-unit">tiempo</div>
-          </div>
+          <div class="metric-box"><div class="metric-val" id="m-km">0.0</div><div class="metric-unit">km</div></div>
+          <div class="metric-box"><div class="metric-val" id="m-spd">0</div><div class="metric-unit">km/h</div></div>
+          <div class="metric-box"><div class="metric-val" id="m-time">0:00</div><div class="metric-unit">tiempo</div></div>
         </div>
       </div>
 
@@ -419,18 +448,9 @@ nav {
     <!-- ════ PATRÓN ════ -->
     <div id="view-patron" class="view">
       <div class="stats-row">
-        <div class="stat-box">
-          <div class="stat-num n-blue">12</div>
-          <div class="stat-label">Total</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-num n-green" id="cnt-on">8</div>
-          <div class="stat-label">En ruta</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-num n-red" id="cnt-off">4</div>
-          <div class="stat-label">Inactivas</div>
-        </div>
+        <div class="stat-box"><div class="stat-num n-blue">12</div><div class="stat-label">Total</div></div>
+        <div class="stat-box"><div class="stat-num n-green" id="cnt-on">8</div><div class="stat-label">En ruta</div></div>
+        <div class="stat-box"><div class="stat-num n-red"   id="cnt-off">4</div><div class="stat-label">Inactivas</div></div>
       </div>
 
       <div class="revenue-card">
@@ -458,89 +478,163 @@ nav {
 
   <nav>
     <button class="tab-btn active" id="tab-pasajero" onclick="switchTab('pasajero')">
-      <span class="tab-icon">🗺️</span>
-      <span class="tab-label">Rutas</span>
+      <span class="tab-icon">🗺️</span><span class="tab-label">Rutas</span>
     </button>
     <button class="tab-btn" id="tab-chofer" onclick="switchTab('chofer')">
-      <span class="tab-icon">📍</span>
-      <span class="tab-label">Chofer</span>
+      <span class="tab-icon">📍</span><span class="tab-label">Chofer</span>
     </button>
     <button class="tab-btn" id="tab-patron" onclick="switchTab('patron')">
-      <span class="tab-icon">👤</span>
-      <span class="tab-label">Patrón</span>
+      <span class="tab-icon">👤</span><span class="tab-label">Patrón</span>
     </button>
   </nav>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-// ── ROUTE DATA ──
-// Waypoints are approximate real streets of Tepic, Nayarit
+// ── ROUTE DEFINITIONS ──
 const ROUTES = {
-  'Progreso 1': {
-    color: '#dc2626',
-    dest: 'Col. Progreso Norte',
-    waypoints: [
-      [21.5043, -104.8984], // Plaza Principal
-      [21.5055, -104.8950],
-      [21.5075, -104.8910],
-      [21.5110, -104.8870],
-      [21.5150, -104.8840],
-      [21.5190, -104.8810],
-      [21.5235, -104.8782],
-    ]
-  },
-  'Alemania': {
-    color: '#2563eb',
-    dest: 'Col. Alemania / IMSS',
-    waypoints: [
-      [21.5043, -104.8984],
-      [21.5028, -104.8940],
-      [21.5008, -104.8878],
-      [21.4982, -104.8815],
-      [21.4956, -104.8752],
-      [21.4930, -104.8695],
-    ]
-  },
-  'Universidad': {
-    color: '#7c3aed',
-    dest: 'UANayarit Campus',
-    waypoints: [
-      [21.5043, -104.8984],
-      [21.5055, -104.9015],
-      [21.5072, -104.9058],
-      [21.5092, -104.9105],
-      [21.5118, -104.9152],
-      [21.5145, -104.9198],
-    ]
-  },
-  'Aguacate-Centro': {
-    color: '#d97706',
-    dest: 'Col. Aguacate Sur',
-    waypoints: [
-      [21.5043, -104.8984],
-      [21.4988, -104.8970],
-      [21.4932, -104.8954],
-      [21.4875, -104.8940],
-      [21.4818, -104.8928],
-      [21.4762, -104.8915],
-    ]
-  },
-  'Lagos del Country': {
-    color: '#059669',
-    dest: 'Lagos del Country',
-    waypoints: [
-      [21.5043, -104.8984],
-      [21.5058, -104.8865],
-      [21.5072, -104.8735],
-      [21.5086, -104.8608],
-      [21.5098, -104.8488],
-      [21.5110, -104.8385],
-    ]
-  },
+  'Progreso 1':       { color: '#dc2626', dest: 'Col. Progreso Norte',  waypoints: [[21.5043,-104.8984],[21.5055,-104.8950],[21.5075,-104.8910],[21.5110,-104.8870],[21.5150,-104.8840],[21.5190,-104.8810],[21.5235,-104.8782]] },
+  'Alemania':         { color: '#2563eb', dest: 'Col. Alemania / IMSS', waypoints: [[21.5043,-104.8984],[21.5028,-104.8940],[21.5008,-104.8878],[21.4982,-104.8815],[21.4956,-104.8752],[21.4930,-104.8695]] },
+  'Universidad':      { color: '#7c3aed', dest: 'UANayarit Campus',     waypoints: [[21.5043,-104.8984],[21.5055,-104.9015],[21.5072,-104.9058],[21.5092,-104.9105],[21.5118,-104.9152],[21.5145,-104.9198]] },
+  'Aguacate-Centro':  { color: '#d97706', dest: 'Col. Aguacate Sur',    waypoints: [[21.5043,-104.8984],[21.4988,-104.8970],[21.4932,-104.8954],[21.4875,-104.8940],[21.4818,-104.8928],[21.4762,-104.8915]] },
+  'Lagos del Country':{ color: '#059669', dest: 'Lagos del Country',    waypoints: [[21.5043,-104.8984],[21.5058,-104.8865],[21.5072,-104.8735],[21.5086,-104.8608],[21.5098,-104.8488],[21.5110,-104.8385]] },
 };
-
 const RNAMES = Object.keys(ROUTES);
+
+// ── SUPABASE STATE ──
+let sb = null;
+let realtimeChannel = null;
+const realBuses = {};     // bus_id → { marker }
+let isConnected = false;
+
+function setStatus(mode) {
+  const dot  = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  const cls  = { demo: 'dot-demo', live: 'dot-live', err: 'dot-err' };
+  dot.className = 'status-dot ' + (cls[mode] || 'dot-demo');
+  text.textContent = mode === 'live' ? 'EN VIVO' : mode === 'err' ? 'ERROR' : 'DEMO';
+  isConnected = mode === 'live';
+}
+
+// ── CONFIG (localStorage) ──
+// Credenciales del proyecto Rutepro en Supabase
+const SUPABASE_URL_DEFAULT = 'https://gizfikiwsjylemdrpvkx.supabase.co';
+const SUPABASE_KEY_DEFAULT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpemZpa2l3c2p5bGVtZHJwdmt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNjkzOTEsImV4cCI6MjA5NTg0NTM5MX0.SDTOM0hkvywyCLOYIBUmgnwk6hRS8ZoeQEAYYWtsjXs';
+
+function loadConfig() {
+  return {
+    url: localStorage.getItem('rv_url') || SUPABASE_URL_DEFAULT,
+    key: localStorage.getItem('rv_key') || SUPABASE_KEY_DEFAULT,
+  };
+}
+
+async function saveConfig() {
+  const url = document.getElementById('cfg-url').value.trim();
+  const key = document.getElementById('cfg-key').value.trim();
+  const err = document.getElementById('cfg-err');
+  err.style.display = 'none';
+
+  if (!url.startsWith('https://') || !key.startsWith('eyJ')) {
+    err.style.display = 'block';
+    return;
+  }
+
+  localStorage.setItem('rv_url', url);
+  localStorage.setItem('rv_key', key);
+  closeConfig();
+  await connectSupabase(url, key);
+}
+
+function openConfig() {
+  const { url, key } = loadConfig();
+  document.getElementById('cfg-url').value = url;
+  document.getElementById('cfg-key').value = key;
+  document.getElementById('cfg-err').style.display = 'none';
+  document.getElementById('cfg-modal').classList.add('open');
+}
+
+function closeConfig() {
+  document.getElementById('cfg-modal').classList.remove('open');
+}
+
+async function connectSupabase(url, key) {
+  try {
+    sb = window.supabase.createClient(url, key);
+    // Quick ping to validate
+    const { error } = await sb.from('bus_positions').select('bus_id').limit(1);
+    if (error && error.code !== 'PGRST116') throw error;
+    setStatus('live');
+    subscribeToRealBuses();
+    loadExistingBuses();
+  } catch (e) {
+    console.error('Supabase connection failed:', e);
+    setStatus('err');
+  }
+}
+
+// ── REALTIME SUBSCRIPTION ──
+function subscribeToRealBuses() {
+  if (!sb) return;
+  if (realtimeChannel) sb.removeChannel(realtimeChannel);
+
+  realtimeChannel = sb
+    .channel('bus_positions_realtime')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'bus_positions' }, payload => {
+      if (payload.eventType === 'DELETE') {
+        removeRealBus(payload.old.bus_id);
+      } else {
+        updateRealBus(payload.new);
+      }
+      refreshArrivals();
+    })
+    .subscribe();
+}
+
+async function loadExistingBuses() {
+  if (!sb) return;
+  const { data } = await sb.from('bus_positions').select('*');
+  if (data) {
+    data.forEach(row => updateRealBus(row));
+    refreshArrivals();
+  }
+}
+
+function makeLiveIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:32px;height:32px;">
+      <div style="position:absolute;inset:0;background:${color};border-radius:50%;opacity:0.3;animation:pulse 1.5s infinite;"></div>
+      <div style="position:absolute;top:4px;left:4px;width:24px;height:24px;background:${color};border:2.5px solid white;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">🚌</div>
+    </div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+}
+
+function updateRealBus(row) {
+  const { bus_id, route_name, lat, lng } = row;
+  const color = ROUTES[route_name]?.color || '#374151';
+
+  if (!realBuses[bus_id]) {
+    realBuses[bus_id] = {
+      marker: L.marker([lat, lng], {
+        icon: makeLiveIcon(color),
+        zIndexOffset: 2000,
+      }).addTo(map).bindPopup(`<b>${route_name}</b><br>🟢 <b>EN VIVO</b>`),
+      route: route_name,
+    };
+  } else {
+    realBuses[bus_id].marker.setLatLng([lat, lng]);
+  }
+}
+
+function removeRealBus(bus_id) {
+  if (realBuses[bus_id]) {
+    map.removeLayer(realBuses[bus_id].marker);
+    delete realBuses[bus_id];
+  }
+}
 
 // ── MAP ──
 const map = L.map('map', {
@@ -549,69 +643,56 @@ const map = L.map('map', {
   zoomControl: false,
   attributionControl: false,
 });
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  maxZoom: 19,
-}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 L.control.zoom({ position: 'topright' }).addTo(map);
 L.control.attribution({ prefix: '© OSM / Carto' }).addTo(map);
 
-// Draw route polylines
+// Draw polylines
 const polylines = {};
 RNAMES.forEach(n => {
   polylines[n] = L.polyline(ROUTES[n].waypoints, {
-    color: ROUTES[n].color,
-    weight: 5,
-    opacity: 0.85,
-    lineCap: 'round',
-    lineJoin: 'round',
+    color: ROUTES[n].color, weight: 5, opacity: 0.8, lineCap: 'round', lineJoin: 'round',
   }).addTo(map);
 });
 
-// User location marker at Plaza Principal
+// User location dot
 L.circleMarker([21.5043, -104.8984], {
-  radius: 9,
-  color: '#1d4ed8',
-  fillColor: '#3b82f6',
-  fillOpacity: 1,
-  weight: 3,
+  radius: 9, color: '#1d4ed8', fillColor: '#3b82f6', fillOpacity: 1, weight: 3,
 }).addTo(map).bindPopup('<b>Tu ubicación</b><br>Plaza Principal, Tepic');
 
-// ── BUS ANIMATION ──
+// ── SIMULATED BUSES (fallback when no real buses active) ──
+function makeBusIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:26px;height:26px;background:${color};border:2.5px solid white;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.22);">🚌</div>`,
+    iconSize: [26, 26], iconAnchor: [13, 13],
+  });
+}
+
 function lerp(a, b, t) { return a + (b - a) * t; }
 
 function posOnRoute(wps, t) {
   const n = wps.length - 1;
   const seg = Math.min(Math.floor(t * n), n - 1);
   const st = (t * n) - seg;
-  const a = wps[seg], b = wps[seg + 1];
-  return [lerp(a[0], b[0], st), lerp(a[1], b[1], st)];
+  return [lerp(wps[seg][0], wps[seg+1][0], st), lerp(wps[seg][1], wps[seg+1][1], st)];
 }
 
-function makeBusIcon(color) {
-  return L.divIcon({
-    className: '',
-    html: `<div style="width:28px;height:28px;background:${color};border:3px solid white;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,0.28);">🚌</div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-  });
-}
-
-const buses = {};
+const simBuses = {};
 RNAMES.forEach((n, i) => {
   const t0 = (i * 0.19) % 1;
-  buses[n] = {
+  simBuses[n] = {
     t: t0,
     speed: 0.0010 + Math.random() * 0.0007,
     marker: L.marker(posOnRoute(ROUTES[n].waypoints, t0), {
-      icon: makeBusIcon(ROUTES[n].color),
-      zIndexOffset: 1000,
-    }).addTo(map).bindPopup(`<b>${n}</b><br>${ROUTES[n].dest}`),
+      icon: makeBusIcon(ROUTES[n].color), zIndexOffset: 500,
+    }).addTo(map).bindPopup(`<b>${n}</b> (simulado)<br>${ROUTES[n].dest}`),
   };
 });
 
 setInterval(() => {
   RNAMES.forEach(n => {
-    const b = buses[n];
+    const b = simBuses[n];
     b.t = (b.t + b.speed) % 1;
     b.marker.setLatLng(posOnRoute(ROUTES[n].waypoints, b.t));
   });
@@ -630,13 +711,13 @@ RNAMES.forEach(n => {
     if (visible.has(n)) {
       visible.delete(n);
       chip.classList.add('dim');
-      polylines[n].setStyle({ opacity: 0.08 });
-      buses[n].marker.setOpacity(0.15);
+      polylines[n].setStyle({ opacity: 0.07 });
+      simBuses[n].marker.setOpacity(0.15);
     } else {
       visible.add(n);
       chip.classList.remove('dim');
-      polylines[n].setStyle({ opacity: 0.85 });
-      buses[n].marker.setOpacity(1);
+      polylines[n].setStyle({ opacity: 0.8 });
+      simBuses[n].marker.setOpacity(1);
     }
     refreshArrivals();
   };
@@ -647,47 +728,59 @@ RNAMES.forEach(n => {
 const USER = [21.5043, -104.8984];
 
 function distKm(a, b) {
-  const R = 6371;
-  const dLat = (b[0] - a[0]) * Math.PI / 180;
-  const dLon = (b[1] - a[1]) * Math.PI / 180;
-  const h = Math.sin(dLat / 2) ** 2 +
-    Math.cos(a[0] * Math.PI / 180) * Math.cos(b[0] * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  const R = 6371, toR = x => x * Math.PI / 180;
+  const dLat = toR(b[0] - a[0]), dLon = toR(b[1] - a[1]);
+  const h = Math.sin(dLat/2)**2 + Math.cos(toR(a[0])) * Math.cos(toR(b[0])) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1-h));
 }
 
 function refreshArrivals() {
-  const rows = RNAMES
-    .filter(n => visible.has(n))
-    .map(n => {
-      const pos = posOnRoute(ROUTES[n].waypoints, buses[n].t);
-      const d = distKm(USER, pos);
-      const mins = Math.max(1, Math.round((d / 18) * 60));
-      return { n, d, mins, color: ROUTES[n].color, dest: ROUTES[n].dest };
-    })
-    .sort((a, b) => a.mins - b.mins);
+  const rows = [];
+
+  // Real buses first (if connected)
+  Object.entries(realBuses).forEach(([bus_id, b]) => {
+    const pos = b.marker.getLatLng();
+    const d = distKm(USER, [pos.lat, pos.lng]);
+    const mins = Math.max(1, Math.round((d / 18) * 60));
+    rows.push({ name: b.route, dest: '🟢 En vivo ahora', d, mins, color: ROUTES[b.route]?.color || '#374151', live: true });
+  });
+
+  // Simulated buses
+  RNAMES.filter(n => visible.has(n)).forEach(n => {
+    const pos = posOnRoute(ROUTES[n].waypoints, simBuses[n].t);
+    const d = distKm(USER, pos);
+    const mins = Math.max(1, Math.round((d / 18) * 60));
+    rows.push({ name: n, dest: ROUTES[n].dest, d, mins, color: ROUTES[n].color, live: false });
+  });
+
+  rows.sort((a, b) => a.mins - b.mins);
 
   document.getElementById('arrivals-list').innerHTML = rows.map(r => `
-    <div class="arrival-row" onclick="flyToBus('${r.n}')">
+    <div class="arrival-row" onclick="flyToRoute('${r.name}', ${r.live})">
       <div class="arrival-bar" style="background:${r.color}"></div>
       <div class="arrival-info">
-        <div class="arrival-name">${r.n}</div>
+        <div class="arrival-name">${r.name} ${r.live ? '<span class="arrival-live-badge">EN VIVO</span>' : ''}</div>
         <div class="arrival-dest">${r.dest}</div>
       </div>
       <div class="arrival-time">
         <div class="arrival-mins">${r.mins}</div>
-        <div class="arrival-mins-unit">min</div>
-        <div class="arrival-dist">${r.d < 1 ? (r.d * 1000).toFixed(0) + ' m' : r.d.toFixed(1) + ' km'}</div>
+        <div class="arrival-mins-u">min</div>
+        <div class="arrival-dist">${r.d < 1 ? (r.d*1000).toFixed(0)+'m' : r.d.toFixed(1)+'km'}</div>
       </div>
     </div>
-  `).join('');
+  `).join('') || '<div style="text-align:center;padding:20px;color:#6b7280;font-size:13px;">Sin rutas activas</div>';
 }
-refreshArrivals();
 
-function flyToBus(name) {
-  const pos = posOnRoute(ROUTES[name].waypoints, buses[name].t);
+function flyToRoute(name, live) {
+  if (live) {
+    const entry = Object.values(realBuses).find(b => b.route === name);
+    if (entry) { map.flyTo(entry.marker.getLatLng(), 15, { duration: 1 }); return; }
+  }
+  const pos = posOnRoute(ROUTES[name].waypoints, simBuses[name].t);
   map.flyTo(pos, 15, { duration: 1 });
-  buses[name].marker.openPopup();
 }
+
+refreshArrivals();
 
 // ── TAB SWITCHING ──
 function switchTab(tab) {
@@ -698,11 +791,21 @@ function switchTab(tab) {
   if (tab === 'pasajero') setTimeout(() => map.invalidateSize(), 50);
 }
 
-// ── CHOFER LOGIC ──
+// ── CHOFER / GPS ──
+const CHOFER_ID = 'bus-' + Math.random().toString(36).slice(2, 7).toUpperCase();
+document.getElementById('bus-id-display').textContent = CHOFER_ID;
+
+// Check geolocation availability
+if (!('geolocation' in navigator)) {
+  document.getElementById('no-gps').style.display = 'block';
+}
+
 let routeOn = false;
+let watchId = null;
 let startTime = null;
-let simKm = 0;
-let choferInterval = null;
+let totalDist = 0;
+let lastPos = null;
+let tickInterval = null;
 
 function toggleRuta() {
   const sel = document.getElementById('chofer-route').value;
@@ -714,21 +817,23 @@ function toggleRuta() {
     return;
   }
   routeOn = !routeOn;
-  const btn = document.getElementById('btn-ruta');
-  const dot = document.getElementById('gps-dot');
-  const wrap = document.getElementById('gps-wrap');
-  const mc = document.getElementById('metrics-card');
+  const btn   = document.getElementById('btn-ruta');
+  const dot   = document.getElementById('gps-dot');
+  const wrap  = document.getElementById('gps-wrap');
+  const mc    = document.getElementById('metrics-card');
+
   if (routeOn) {
     btn.textContent = '■  FINALIZAR RUTA';
     btn.className = 'btn-main btn-stop';
     dot.className = 'gps-dot on';
     wrap.className = 'gps-icon-wrap on';
-    document.getElementById('gps-label').textContent = 'GPS activo · Tepic, Nay.';
-    document.getElementById('gps-sub').textContent = '21.5043° N  104.8984° O';
+    document.getElementById('gps-label').textContent = 'Obteniendo señal GPS…';
+    document.getElementById('gps-sub').textContent = 'Buscando satélites…';
     mc.style.display = 'block';
     startTime = Date.now();
-    simKm = 0;
-    choferInterval = setInterval(tickMetrics, 2000);
+    totalDist = 0; lastPos = null;
+    startGPS(sel);
+    tickInterval = setInterval(tickTime, 1000);
   } else {
     btn.textContent = '▶  INICIAR RUTA';
     btn.className = 'btn-main btn-go';
@@ -737,22 +842,64 @@ function toggleRuta() {
     document.getElementById('gps-label').textContent = 'GPS inactivo';
     document.getElementById('gps-sub').textContent = 'Inicia tu ruta para activar';
     mc.style.display = 'none';
-    clearInterval(choferInterval);
+    stopGPS();
+    clearInterval(tickInterval);
   }
 }
 
-function tickMetrics() {
+function startGPS(routeName) {
+  if (!('geolocation' in navigator)) return;
+  watchId = navigator.geolocation.watchPosition(
+    pos => onPosition(pos, routeName),
+    err => {
+      console.warn('GPS error:', err);
+      document.getElementById('gps-sub').textContent = 'Error GPS: ' + err.message;
+    },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+  );
+}
+
+function stopGPS() {
+  if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  if (sb) sb.from('bus_positions').delete().eq('bus_id', CHOFER_ID).then(() => {});
+}
+
+function onPosition(pos, routeName) {
+  const { latitude: lat, longitude: lng, speed, accuracy } = pos.coords;
+  const kmh = speed != null ? Math.round(speed * 3.6) : null;
+
+  document.getElementById('gps-label').textContent = 'GPS activo';
+  document.getElementById('gps-sub').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}  (±${Math.round(accuracy)}m)`;
+  if (kmh !== null) document.getElementById('m-spd').textContent = kmh;
+
+  // Accumulate distance
+  if (lastPos) {
+    totalDist += distKm([lastPos.lat, lastPos.lng], [lat, lng]);
+    document.getElementById('m-km').textContent = totalDist.toFixed(1);
+  }
+  lastPos = { lat, lng };
+
+  // Send to Supabase
+  if (sb && routeOn) {
+    sb.from('bus_positions').upsert({
+      bus_id: CHOFER_ID,
+      route_name: routeName,
+      lat,
+      lng,
+      speed: kmh || 0,
+      updated_at: new Date().toISOString(),
+    }).then(({ error }) => { if (error) console.error('Supabase write error:', error); });
+  }
+}
+
+function tickTime() {
+  if (!startTime) return;
   const elapsed = (Date.now() - startTime) / 1000;
-  const m = Math.floor(elapsed / 60);
-  const s = Math.floor(elapsed % 60);
-  const spd = 12 + Math.round(Math.random() * 26);
-  simKm += spd * (2 / 3600);
-  document.getElementById('m-km').textContent = simKm.toFixed(1);
-  document.getElementById('m-spd').textContent = spd;
+  const m = Math.floor(elapsed / 60), s = Math.floor(elapsed % 60);
   document.getElementById('m-time').textContent = m + ':' + String(s).padStart(2, '0');
 }
 
-// ── FLEET DATA ──
+// ── PATRÓN FLEET ──
 const FLEET = [
   { id: '#01', route: 'Progreso 1',       on: true,  spd: 24 },
   { id: '#02', route: 'Progreso 1',       on: true,  spd: 31 },
@@ -785,19 +932,19 @@ function renderFleet() {
 }
 renderFleet();
 
-// Simulate live speed fluctuation
 setInterval(() => {
-  FLEET.forEach(u => {
-    if (u.on) u.spd = Math.max(8, Math.min(48, u.spd + Math.round((Math.random() - 0.5) * 8)));
-  });
+  FLEET.forEach(u => { if (u.on) u.spd = Math.max(8, Math.min(48, u.spd + Math.round((Math.random()-.5)*8))); });
   if (document.getElementById('view-patron').classList.contains('active')) renderFleet();
 }, 3200);
 
-// Animate revenue bar on load
-setTimeout(() => {
-  const fill = document.getElementById('rev-fill');
-  if (fill) fill.style.width = '67%';
-}, 400);
+// Revenue bar animation
+setTimeout(() => { const f = document.getElementById('rev-fill'); if(f) f.style.width = '67%'; }, 400);
+
+// ── INIT: conectar a Supabase automáticamente ──
+(async () => {
+  const { url, key } = loadConfig();
+  await connectSupabase(url, key);
+})();
 </script>
 </body>
 </html>
