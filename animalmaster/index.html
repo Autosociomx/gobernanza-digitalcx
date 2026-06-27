@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#92400E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Animal Master — Gestión inteligente de las 7 especies ganaderas de Nayarit con clasificación Oro Puro">
+<title>Animal Master · Las 7 Especies</title>
+<style>
+:root {
+  --oro:       #D4A017;
+  --oro-light: #FEF3C7;
+  --oro-dark:  #92400E;
+  --campo:     #15803d;
+  --azul:      #1B2B5C;
+  --gris-bg:   #F8FAFC;
+  --gris-borde:#E2E8F0;
+  --texto:     #1E293B;
+  --texto-sub: #64748B;
+  --blanco:    #FFFFFF;
+  --rojo:      #DC2626;
+  --verde:     #16a34a;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; background: var(--gris-bg); }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--texto); }
+#app { height: 100dvh; display: flex; flex-direction: column; }
+
+/* ── HEADER ── */
+header {
+  background: linear-gradient(135deg, #92400E 0%, #78350F 100%);
+  color: white;
+  padding: 12px 16px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+  z-index: 100;
+  position: relative;
+  overflow: hidden;
+}
+header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #D4A017 0%, #F5A623 30%, #15803d 60%, #1B2B5C 100%);
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,0.15);
+  border: 1.5px solid rgba(255,255,255,0.3);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.logo-name { font-size: 17px; font-weight: 800; letter-spacing: -0.4px; }
+.logo-sub  { font-size: 10px; opacity: 0.7; margin-top: 1px; letter-spacing: 0.3px; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+#status-pill {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700;
+  padding: 4px 9px; border-radius: 20px;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.25);
+  cursor: pointer;
+}
+.sdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.sdot-demo { background: #fbbf24; }
+.sdot-live { background: #4ade80; animation: pulse 1.5s infinite; }
+.sdot-err  { background: #f87171; }
+
+/* ── CONFIG MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 9000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: white; border-radius: 20px; padding: 24px;
+  width: 100%; max-width: 380px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  display: flex; flex-direction: column; gap: 14px;
+  transform: translateY(14px); transition: transform 0.2s;
+}
+.modal-overlay.open .modal-box { transform: translateY(0); }
+.modal-header { display: flex; align-items: center; gap: 12px; }
+.modal-ico { font-size: 30px; }
+.modal-title { font-size: 16px; font-weight: 800; color: #111827; }
+.modal-sub { font-size: 12px; color: var(--texto-sub); margin-top: 2px; }
+.cfg-label { font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+.cfg-input {
+  width: 100%; padding: 11px 13px;
+  border: 1.5px solid var(--gris-borde); border-radius: 10px;
+  font-size: 14px; color: var(--texto); background: #f9fafb;
+  outline: none; transition: border-color 0.15s;
+}
+.cfg-input:focus { border-color: var(--oro-dark); }
+.cfg-err { font-size: 12px; color: var(--rojo); display: none; }
+.btn-connect {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, #92400E, #78350F);
+  color: white; border: none; border-radius: 10px;
+  font-size: 15px; font-weight: 800; cursor: pointer;
+}
+.btn-connect:active { opacity: 0.85; }
+.btn-demo-mode {
+  width: 100%; padding: 11px; background: none;
+  border: 1.5px solid var(--gris-borde); border-radius: 10px;
+  font-size: 13px; font-weight: 600; color: var(--texto-sub); cursor: pointer;
+}
+.modal-hint { font-size: 11px; color: #9ca3af; text-align: center; line-height: 1.5; }
+.modal-hint a { color: #2563eb; }
+hr.modal-divider { border: none; border-top: 1px solid #f1f5f9; }
+
+/* ── VIEWS ── */
+.view-wrap { flex: 1; overflow: hidden; position: relative; }
+.view { position: absolute; inset: 0; overflow-y: auto; display: none; padding: 14px 14px 20px; flex-direction: column; gap: 12px; }
+.view.active { display: flex; }
+
+/* ── BOTTOM TABS ── */
+nav {
+  display: flex; background: white;
+  border-top: 1px solid var(--gris-borde);
+  flex-shrink: 0; z-index: 100;
+}
+.tab-btn {
+  flex: 1; border: none; background: none;
+  padding: 10px 4px 12px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  color: #9ca3af; -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s;
+}
+.tab-btn.active { color: var(--oro-dark); }
+.tab-icon { font-size: 20px; line-height: 1; }
+.tab-label { font-size: 10px; font-weight: 700; letter-spacing: .3px; }
+
+/* ── CARDS & UTILS ── */
+.card { background: white; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); overflow: hidden; }
+.section-hd { font-size: 13px; font-weight: 700; color: var(--texto-sub); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; padding-left: 2px; }
+
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+
+/* ════════════════════════════════════════
+   VIEW 1: INICIO (DASHBOARD)
+   ════════════════════════════════════════ */
+.kpi-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.kpi-box { background: white; border-radius: 14px; padding: 14px 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+.kpi-val { font-size: 28px; font-weight: 800; line-height: 1; }
+.kpi-unit { font-size: 11px; font-weight: 600; margin-top: 2px; }
+.kpi-lbl { font-size: 10px; color: var(--texto-sub); text-transform: uppercase; letter-spacing: .4px; margin-top: 4px; }
+.kpi-oro  { color: var(--oro); }
+.kpi-campo{ color: var(--campo); }
+.kpi-rojo { color: var(--rojo); }
+
+.oro-banner {
+  background: linear-gradient(135deg, #92400E 0%, #B45309 50%, #D4A017 100%);
+  border-radius: 18px;
+  padding: 18px 20px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.oro-banner::before {
+  content: '✨';
+  position: absolute;
+  right: 20px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 48px;
+  opacity: 0.25;
+}
+.oro-banner-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+.oro-banner-val { font-size: 36px; font-weight: 800; line-height: 1; }
+.oro-banner-sub { font-size: 12px; opacity: 0.75; margin-top: 4px; }
+.oro-banner-bar { margin-top: 14px; }
+.oro-bar-labels { display: flex; justify-content: space-between; font-size: 11px; opacity: 0.8; margin-bottom: 6px; }
+.oro-bar-bg { height: 7px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
+.oro-bar-fill { height: 100%; background: white; border-radius: 4px; transition: width 1.2s ease; }
+
+.especies-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.especie-card {
+  background: white; border-radius: 14px;
+  padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  display: flex; flex-direction: column; gap: 8px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.especie-card:active { transform: scale(0.97); }
+.especie-top { display: flex; align-items: center; justify-content: space-between; }
+.especie-icon { font-size: 26px; }
+.especie-badge-oro {
+  background: linear-gradient(135deg, #D4A017, #F5A623);
+  color: white; font-size: 9px; font-weight: 800;
+  padding: 3px 7px; border-radius: 10px;
+  letter-spacing: 0.4px;
+}
+.especie-nombre { font-size: 14px; font-weight: 700; color: var(--texto); }
+.especie-count { font-size: 11px; color: var(--texto-sub); }
+.especie-metric {
+  background: var(--gris-bg); border-radius: 8px;
+  padding: 8px 10px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.especie-metric-val { font-size: 16px; font-weight: 800; }
+.especie-metric-lbl { font-size: 10px; color: var(--texto-sub); }
+
+.actividad-list { display: flex; flex-direction: column; gap: 0; }
+.actividad-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f8fafc;
+}
+.actividad-item:last-child { border-bottom: none; }
+.act-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+}
+.act-info { flex: 1; min-width: 0; }
+.act-txt { font-size: 13px; font-weight: 600; color: var(--texto); }
+.act-sub { font-size: 11px; color: var(--texto-sub); margin-top: 2px; }
+.act-time { font-size: 11px; color: #9ca3af; flex-shrink: 0; }
+
+/* ════════════════════════════════════════
+   VIEW 2: REBAÑO
+   ════════════════════════════════════════ */
+.filter-row {
+  display: flex; gap: 8px; align-items: center;
+}
+.search-wrap { flex: 1; position: relative; }
+.search-ico { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+.search-input {
+  width: 100%; padding: 10px 12px 10px 34px;
+  border: 1.5px solid var(--gris-borde); border-radius: 10px;
+  font-size: 14px; color: var(--texto); background: white;
+  outline: none; transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--oro-dark); }
+.filter-select {
+  padding: 10px 10px;
+  border: 1.5px solid var(--gris-borde); border-radius: 10px;
+  font-size: 13px; font-weight: 600; color: var(--texto);
+  background: white; outline: none; cursor: pointer;
+  appearance: none; min-width: 80px;
+}
+.filter-select:focus { border-color: var(--oro-dark); }
+
+.animal-list { display: flex; flex-direction: column; gap: 8px; }
+.animal-card {
+  background: white; border-radius: 14px;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  animation: fadeIn 0.3s ease;
+  border-left: 4px solid transparent;
+}
+.animal-card.oro  { border-left-color: var(--oro); }
+.animal-card.plata{ border-left-color: #94A3B8; }
+.animal-card:active { opacity: 0.85; }
+.a-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.a-info { flex: 1; min-width: 0; }
+.a-nombre { font-size: 14px; font-weight: 700; color: var(--texto); display: flex; align-items: center; gap: 6px; }
+.a-sub { font-size: 11px; color: var(--texto-sub); margin-top: 2px; }
+.a-right { text-align: right; flex-shrink: 0; }
+.a-score { font-size: 22px; font-weight: 800; line-height: 1; }
+.a-score-lbl { font-size: 10px; color: var(--texto-sub); margin-top: 2px; }
+
+.badge-oro   { background: linear-gradient(135deg,#D4A017,#F5A623); color:white; font-size:9px; font-weight:800; padding:2px 6px; border-radius:8px; }
+.badge-plata { background:#E2E8F0; color:#475569; font-size:9px; font-weight:800; padding:2px 6px; border-radius:8px; }
+.badge-reg   { background:#F1F5F9; color:#94A3B8; font-size:9px; font-weight:700; padding:2px 6px; border-radius:8px; }
+
+/* ════════════════════════════════════════
+   VIEW 3: ORO PURO
+   ════════════════════════════════════════ */
+.oro-hero {
+  background: linear-gradient(135deg, #78350F, #92400E, #B45309);
+  border-radius: 18px; padding: 20px;
+  color: white; text-align: center;
+}
+.oro-hero-ico { font-size: 42px; margin-bottom: 8px; }
+.oro-hero-title { font-size: 20px; font-weight: 800; }
+.oro-hero-sub { font-size: 12px; opacity: 0.75; margin-top: 4px; line-height: 1.5; }
+.oro-stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 16px; }
+.oro-stat { background: rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 6px; }
+.oro-stat-val { font-size: 20px; font-weight: 800; }
+.oro-stat-lbl { font-size: 10px; opacity: 0.75; margin-top: 2px; }
+
+.breeding-card {
+  background: white; border-radius: 16px;
+  overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+.breeding-header {
+  background: linear-gradient(135deg, var(--oro-light), #FDE68A);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid #FDE68A;
+}
+.breeding-header-ico { font-size: 22px; }
+.breeding-header-txt { font-size: 13px; font-weight: 700; color: var(--oro-dark); }
+.breeding-header-sub { font-size: 11px; color: #92400E; opacity: 0.75; }
+
+.oro-list { display: flex; flex-direction: column; gap: 0; }
+.oro-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px;
+  border-bottom: 1px solid #f8fafc;
+  cursor: pointer;
+}
+.oro-item:last-child { border-bottom: none; }
+.oro-rank {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--oro), #F5A623);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: white;
+  flex-shrink: 0;
+}
+.oro-item-ico { font-size: 22px; flex-shrink: 0; }
+.oro-item-info { flex: 1; min-width: 0; }
+.oro-item-nombre { font-size: 13px; font-weight: 700; color: var(--texto); }
+.oro-item-esp { font-size: 11px; color: var(--texto-sub); margin-top: 1px; }
+.oro-item-right { text-align: right; flex-shrink: 0; }
+.oro-item-score { font-size: 20px; font-weight: 800; color: var(--oro); }
+.oro-item-metric { font-size: 10px; color: var(--texto-sub); margin-top: 2px; }
+
+.recomendacion-card {
+  background: white; border-radius: 14px;
+  padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.rec-title { font-size: 13px; font-weight: 700; color: var(--texto); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.rec-list { display: flex; flex-direction: column; gap: 8px; }
+.rec-item {
+  background: var(--gris-bg); border-radius: 10px;
+  padding: 12px 14px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.rec-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.rec-dot.oro   { background: var(--oro); }
+.rec-dot.verde { background: var(--verde); }
+.rec-dot.azul  { background: var(--azul); }
+.rec-txt { font-size: 12px; color: var(--texto); line-height: 1.5; }
+
+/* ════════════════════════════════════════
+   VIEW 4: SALUD
+   ════════════════════════════════════════ */
+.alerta-card {
+  border-radius: 14px; padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.alerta-card.urgente { background: #FEF2F2; border-left: 4px solid var(--rojo); }
+.alerta-card.aviso   { background: #FFFBEB; border-left: 4px solid #F59E0B; }
+.alerta-card.ok      { background: #F0FDF4; border-left: 4px solid var(--campo); }
+.alerta-ico { font-size: 26px; flex-shrink: 0; }
+.alerta-info { flex: 1; }
+.alerta-titulo { font-size: 13px; font-weight: 700; }
+.alerta-sub { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+.alerta-fecha { font-size: 11px; color: var(--texto-sub); flex-shrink: 0; }
+.alerta-card.urgente .alerta-titulo { color: #991B1B; }
+.alerta-card.aviso   .alerta-titulo { color: #92400E; }
+.alerta-card.ok      .alerta-titulo { color: #166534; }
+
+.vac-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid #f8fafc;
+}
+.vac-item:last-child { border-bottom: none; }
+.vac-icon { font-size: 20px; width: 36px; text-align: center; flex-shrink: 0; }
+.vac-info { flex: 1; }
+.vac-nombre { font-size: 13px; font-weight: 700; color: var(--texto); }
+.vac-especie { font-size: 11px; color: var(--texto-sub); margin-top: 1px; }
+.vac-right { text-align: right; }
+.vac-fecha { font-size: 12px; font-weight: 700; }
+.vac-dias { font-size: 10px; color: var(--texto-sub); margin-top: 2px; }
+.vac-fecha.pronto { color: #F59E0B; }
+.vac-fecha.pendiente { color: var(--rojo); }
+.vac-fecha.ok { color: var(--campo); }
+
+.evento-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid #f8fafc;
+}
+.evento-item:last-child { border-bottom: none; }
+.evento-tipo {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 2px;
+}
+.evento-info { flex: 1; }
+.evento-txt { font-size: 13px; font-weight: 600; color: var(--texto); }
+.evento-sub { font-size: 11px; color: var(--texto-sub); margin-top: 1px; }
+.evento-hora { font-size: 11px; color: #9ca3af; flex-shrink: 0; }
+
+/* ── ANIMAL DETAIL SHEET ── */
+.sheet-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 8000;
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.sheet-overlay.open { opacity: 1; pointer-events: all; }
+.sheet {
+  background: white;
+  border-radius: 24px 24px 0 0;
+  width: 100%; max-height: 85dvh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(.32,.72,0,1);
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+.sheet-overlay.open .sheet { transform: translateY(0); }
+.sheet-handle { width: 40px; height: 4px; background: #E2E8F0; border-radius: 2px; margin: 14px auto 0; }
+.sheet-header { padding: 16px 20px 0; display: flex; align-items: center; gap: 14px; }
+.sheet-icon { font-size: 36px; }
+.sheet-name { font-size: 20px; font-weight: 800; color: var(--texto); }
+.sheet-id { font-size: 12px; color: var(--texto-sub); margin-top: 2px; }
+.sheet-body { padding: 16px 20px 20px; }
+.sheet-score-row {
+  background: linear-gradient(135deg, #78350F, #D4A017);
+  border-radius: 16px; padding: 16px 20px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 16px; color: white;
+}
+.sheet-score-num { font-size: 48px; font-weight: 800; line-height: 1; }
+.sheet-score-info .score-lbl { font-size: 12px; opacity: 0.75; }
+.sheet-score-info .score-cat { font-size: 18px; font-weight: 800; margin-top: 2px; }
+.sheet-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.sheet-metric { background: var(--gris-bg); border-radius: 12px; padding: 12px 14px; }
+.sheet-metric-lbl { font-size: 10px; font-weight: 600; color: var(--texto-sub); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+.sheet-metric-val { font-size: 18px; font-weight: 800; color: var(--texto); }
+.sheet-metric-unit { font-size: 11px; color: var(--texto-sub); }
+.sheet-events-title { font-size: 13px; font-weight: 700; color: var(--texto); margin-bottom: 10px; }
+.sheet-event { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+.sheet-event:last-child { border-bottom: none; }
+.sheet-event-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sheet-event-txt { font-size: 12px; color: var(--texto); flex: 1; }
+.sheet-event-date { font-size: 11px; color: #9ca3af; }
+.btn-close-sheet {
+  width: 100%; padding: 14px; margin-top: 16px;
+  background: var(--gris-bg); border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 700; color: var(--texto-sub);
+  cursor: pointer;
+}
+
+/* ── RESPONSIVE ── */
+@media (min-width: 480px) {
+  .especies-grid { grid-template-columns: 1fr 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🐄</div>
+      <div>
+        <div class="logo-name">Animal Master</div>
+        <div class="logo-sub">Las 7 Especies · Nayarit</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div id="status-pill" onclick="openConfig()">
+        <span class="sdot sdot-demo" id="status-dot"></span>
+        <span id="status-text">DEMO</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONFIG MODAL -->
+  <div class="modal-overlay" id="cfg-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-ico">🔌</span>
+        <div>
+          <div class="modal-title">Conectar a Supabase</div>
+          <div class="modal-sub">Ingresa las credenciales del rancho</div>
+        </div>
+      </div>
+      <div>
+        <div class="cfg-label">URL del proyecto</div>
+        <input class="cfg-input" id="cfg-url" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off" spellcheck="false">
+      </div>
+      <div>
+        <div class="cfg-label">Anon / Public Key</div>
+        <input class="cfg-input" id="cfg-key" type="text" placeholder="eyJhbGciOiJIUzI1NiIs..." autocomplete="off" spellcheck="false">
+      </div>
+      <div class="cfg-err" id="cfg-err">⚠️ Credenciales inválidas. Revisa URL y key.</div>
+      <button class="btn-connect" onclick="saveConfig()">Conectar →</button>
+      <hr class="modal-divider">
+      <button class="btn-demo-mode" onclick="closeConfig()">Continuar en modo demo</button>
+      <p class="modal-hint">
+        Corre <code>schema.sql</code> en tu proyecto Supabase antes de conectar.<br>
+        <a href="https://supabase.com/dashboard" target="_blank">supabase.com/dashboard</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ANIMAL DETAIL SHEET -->
+  <div class="sheet-overlay" id="detail-sheet">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-icon" id="d-icon">🐄</span>
+        <div>
+          <div class="sheet-name" id="d-nombre">Nombre</div>
+          <div class="sheet-id" id="d-id">#ID · Especie</div>
+        </div>
+      </div>
+      <div class="sheet-body">
+        <div class="sheet-score-row">
+          <div class="sheet-score-num" id="d-score">92</div>
+          <div class="sheet-score-info">
+            <div class="score-lbl">Puntuación desempeño</div>
+            <div class="score-cat" id="d-cat">🥇 ORO PURO</div>
+          </div>
+        </div>
+        <div class="sheet-metrics" id="d-metrics"></div>
+        <div class="sheet-events-title">📋 Historial reciente</div>
+        <div id="d-events"></div>
+        <button class="btn-close-sheet" onclick="closeSheet()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEWS -->
+  <div class="view-wrap">
+
+    <!-- ════ INICIO ════ -->
+    <div id="view-inicio" class="view active">
+
+      <div class="kpi-row">
+        <div class="kpi-box">
+          <div class="kpi-val kpi-campo" id="kpi-total">294</div>
+          <div class="kpi-unit" style="color:var(--campo)">animales</div>
+          <div class="kpi-lbl">Total rebaño</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-val kpi-oro" id="kpi-oro-pct">20%</div>
+          <div class="kpi-unit" style="color:var(--oro)">élite</div>
+          <div class="kpi-lbl">Oro Puro</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-val kpi-rojo" id="kpi-alertas">3</div>
+          <div class="kpi-unit" style="color:var(--rojo)">alertas</div>
+          <div class="kpi-lbl">Atención</div>
+        </div>
+      </div>
+
+      <div class="oro-banner">
+        <div class="oro-banner-label">Producción Oro Puro · Junio 2026</div>
+        <div class="oro-banner-val">$184,200 <span style="font-size:16px;font-weight:400;opacity:.75">MXN</span></div>
+        <div class="oro-banner-sub">Top 20% genera el 78% del ingreso del rancho</div>
+        <div class="oro-banner-bar">
+          <div class="oro-bar-labels"><span>Meta mensual</span><span>74%</span></div>
+          <div class="oro-bar-bg"><div class="oro-bar-fill" id="oro-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-hd">Las 7 Especies</div>
+        <div class="especies-grid" id="especies-grid"></div>
+      </div>
+
+      <div class="card">
+        <div style="padding:12px 16px 4px">
+          <div class="section-hd">Actividad reciente</div>
+        </div>
+        <div class="actividad-list">
+          <div class="actividad-item">
+            <div class="act-icon" style="background:#FEF3C7">🥇</div>
+            <div class="act-info">
+              <div class="act-txt">La Consentida alcanzó Oro Puro</div>
+              <div class="act-sub">Bovino · Score 94/100 · 24L leche/día</div>
+            </div>
+            <div class="act-time">2h</div>
+          </div>
+          <div class="actividad-item">
+            <div class="act-icon" style="background:#FEF2F2">💉</div>
+            <div class="act-info">
+              <div class="act-txt">Vacunación Fiebre Aftosa aplicada</div>
+              <div class="act-sub">18 bovinos · Lote B-Norte</div>
+            </div>
+            <div class="act-time">5h</div>
+          </div>
+          <div class="actividad-item">
+            <div class="act-icon" style="background:#F0FDF4">🐣</div>
+            <div class="act-info">
+              <div class="act-txt">Nacimiento registrado — Ovino</div>
+              <div class="act-sub">Cría hembra · 4.2kg · Madre: Flor-OV19</div>
+            </div>
+            <div class="act-time">1d</div>
+          </div>
+          <div class="actividad-item">
+            <div class="act-icon" style="background:#EFF6FF">🍯</div>
+            <div class="act-info">
+              <div class="act-txt">Cosecha de miel — 34kg</div>
+              <div class="act-sub">Apícola · 4 colmenas Oro Puro</div>
+            </div>
+            <div class="act-time">2d</div>
+          </div>
+          <div class="actividad-item">
+            <div class="act-icon" style="background:#FFFBEB">⚠️</div>
+            <div class="act-info">
+              <div class="act-txt">Peso bajo detectado — Caprino</div>
+              <div class="act-sub">ID #CP-007 · 28kg (mín. esperado 38kg)</div>
+            </div>
+            <div class="act-time">3d</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;font-size:11px;color:#9ca3af;padding:4px 0 6px">
+        Animal Master · Gobernanza Digital Nayarit 2026–2033<br>
+        <span style="color:var(--oro)">★</span> Geraldine Ponce · Nayarit Digital
+      </div>
+    </div>
+
+    <!-- ════ REBAÑO ════ -->
+    <div id="view-rebano" class="view">
+      <div class="filter-row">
+        <div class="search-wrap">
+          <span class="search-ico">🔍</span>
+          <input class="search-input" id="search-input" placeholder="Buscar por nombre o ID..." oninput="filtrarAnimales()">
+        </div>
+        <select class="filter-select" id="filter-especie" onchange="filtrarAnimales()">
+          <option value="">Todas</option>
+          <option value="bovino">🐄 Bovino</option>
+          <option value="porcino">🐷 Porcino</option>
+          <option value="ovino">🐑 Ovino</option>
+          <option value="caprino">🐐 Caprino</option>
+          <option value="equino">🐴 Equino</option>
+          <option value="aviar">🐔 Aviar</option>
+          <option value="apicola">🐝 Apícola</option>
+        </select>
+      </div>
+      <div class="animal-list" id="animal-list"></div>
+    </div>
+
+    <!-- ════ ORO PURO ════ -->
+    <div id="view-oro" class="view">
+
+      <div class="oro-hero">
+        <div class="oro-hero-ico">🥇</div>
+        <div class="oro-hero-title">Top 20% — Oro Puro</div>
+        <div class="oro-hero-sub">Los animales élite que generan el mayor retorno.<br>Prioridad en reproducción, nutrición y cuidado.</div>
+        <div class="oro-stats-row">
+          <div class="oro-stat">
+            <div class="oro-stat-val" id="oro-count">59</div>
+            <div class="oro-stat-lbl">Animales Oro</div>
+          </div>
+          <div class="oro-stat">
+            <div class="oro-stat-val">94</div>
+            <div class="oro-stat-lbl">Score máx.</div>
+          </div>
+          <div class="oro-stat">
+            <div class="oro-stat-val">78%</div>
+            <div class="oro-stat-lbl">Del ingreso</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="breeding-card">
+        <div class="breeding-header">
+          <span class="breeding-header-ico">🧬</span>
+          <div>
+            <div class="breeding-header-txt">Cruce Recomendado — Junio 2026</div>
+            <div class="breeding-header-sub">Solo animales Oro Puro como reproductores</div>
+          </div>
+        </div>
+        <div class="oro-list" id="oro-list"></div>
+      </div>
+
+      <div class="recomendacion-card">
+        <div class="rec-title">📌 Estrategia Oro Puro</div>
+        <div class="rec-list">
+          <div class="rec-item">
+            <div class="rec-dot oro"></div>
+            <div class="rec-txt"><strong>Solo reproductores Oro:</strong> Usar exclusivamente animales con score ≥ 80 para cruces. Esto eleva el promedio genético del rebaño en 2–3 generaciones.</div>
+          </div>
+          <div class="rec-item">
+            <div class="rec-dot verde"></div>
+            <div class="rec-txt"><strong>Nutrición diferenciada:</strong> Los animales Oro reciben plan alimenticio premium (+15% energía). Esto maximiza su producción y mantiene el score.</div>
+          </div>
+          <div class="rec-item">
+            <div class="rec-dot azul"></div>
+            <div class="rec-txt"><strong>Seguimiento mensual:</strong> El score se recalcula cada 30 días. Animales que bajen de 80 salen de la categoría Oro y entran en plan de recuperación.</div>
+          </div>
+          <div class="rec-item">
+            <div class="rec-dot oro"></div>
+            <div class="rec-txt"><strong>Meta 2027:</strong> Elevar el umbral Oro a score ≥ 85, incrementando la calidad del 20% élite y la rentabilidad proyectada en +32%.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="padding:12px 16px 4px">
+          <div class="section-hd">Desempeño por especie (Top 20%)</div>
+        </div>
+        <div id="oro-especies-list" class="actividad-list"></div>
+      </div>
+    </div>
+
+    <!-- ════ SALUD ════ -->
+    <div id="view-salud" class="view">
+
+      <div>
+        <div class="section-hd">Alertas activas</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="alerta-card urgente">
+            <div class="alerta-ico">🚨</div>
+            <div class="alerta-info">
+              <div class="alerta-titulo">Peso crítico — Caprino #CP-007</div>
+              <div class="alerta-sub">28kg vs mínimo esperado 38kg. Requiere revisión veterinaria.</div>
+            </div>
+            <div class="alerta-fecha">Hoy</div>
+          </div>
+          <div class="alerta-card aviso">
+            <div class="alerta-ico">⏰</div>
+            <div class="alerta-info">
+              <div class="alerta-titulo">Vacuna próxima — Bovino lote Norte</div>
+              <div class="alerta-sub">Brucelosis en 4 días · 22 animales pendientes</div>
+            </div>
+            <div class="alerta-fecha">4d</div>
+          </div>
+          <div class="alerta-card aviso">
+            <div class="alerta-ico">🐔</div>
+            <div class="alerta-info">
+              <div class="alerta-titulo">Baja producción — Aviar lote 3</div>
+              <div class="alerta-sub">Producción 18% bajo promedio esta semana</div>
+            </div>
+            <div class="alerta-fecha">2d</div>
+          </div>
+          <div class="alerta-card ok">
+            <div class="alerta-ico">✅</div>
+            <div class="alerta-info">
+              <div class="alerta-titulo">Plan sanitario al día — Ovino y Equino</div>
+              <div class="alerta-sub">Todas las vacunas y desparasitaciones al corriente</div>
+            </div>
+            <div class="alerta-fecha">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="padding:12px 16px 4px">
+          <div class="section-hd">Calendario de vacunas</div>
+        </div>
+        <div>
+          <div class="vac-item">
+            <div class="vac-icon">💉</div>
+            <div class="vac-info">
+              <div class="vac-nombre">Brucelosis B19</div>
+              <div class="vac-especie">Bovino · 22 animales lote Norte</div>
+            </div>
+            <div class="vac-right">
+              <div class="vac-fecha pendiente">1 Jul</div>
+              <div class="vac-dias">En 4 días</div>
+            </div>
+          </div>
+          <div class="vac-item">
+            <div class="vac-icon">💉</div>
+            <div class="vac-info">
+              <div class="vac-nombre">Desparasitación interna</div>
+              <div class="vac-especie">Porcino · 32 animales</div>
+            </div>
+            <div class="vac-right">
+              <div class="vac-fecha pronto">8 Jul</div>
+              <div class="vac-dias">En 11 días</div>
+            </div>
+          </div>
+          <div class="vac-item">
+            <div class="vac-icon">💉</div>
+            <div class="vac-info">
+              <div class="vac-nombre">Newcastle + Marek</div>
+              <div class="vac-especie">Aviar · Lote 1 y 2 · 95 aves</div>
+            </div>
+            <div class="vac-right">
+              <div class="vac-fecha pronto">15 Jul</div>
+              <div class="vac-dias">En 18 días</div>
+            </div>
+          </div>
+          <div class="vac-item">
+            <div class="vac-icon">💉</div>
+            <div class="vac-info">
+              <div class="vac-nombre">Encefalitis Equina</div>
+              <div class="vac-especie">Equino · 8 unidades</div>
+            </div>
+            <div class="vac-right">
+              <div class="vac-fecha ok">22 Jul</div>
+              <div class="vac-dias">En 25 días</div>
+            </div>
+          </div>
+          <div class="vac-item">
+            <div class="vac-icon">💉</div>
+            <div class="vac-info">
+              <div class="vac-nombre">Fiebre Aftosa — refuerzo</div>
+              <div class="vac-especie">Bovino + Ovino + Caprino</div>
+            </div>
+            <div class="vac-right">
+              <div class="vac-fecha ok">15 Ago</div>
+              <div class="vac-dias">En 49 días</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="padding:12px 16px 4px">
+          <div class="section-hd">Eventos de salud recientes</div>
+        </div>
+        <div>
+          <div class="evento-item">
+            <div class="evento-tipo" style="background:#16a34a"></div>
+            <div class="evento-info">
+              <div class="evento-txt">Vacunación Fiebre Aftosa — 18 bovinos</div>
+              <div class="evento-sub">Lote B-Norte · Aplicó: Dr. Herrera</div>
+            </div>
+            <div class="evento-hora">Hoy 08:30</div>
+          </div>
+          <div class="evento-item">
+            <div class="evento-tipo" style="background:#F59E0B"></div>
+            <div class="evento-info">
+              <div class="evento-txt">Tratamiento Caprino #CP-007 — suplemento</div>
+              <div class="evento-sub">Bajo peso. Vitaminas B + mineral lick</div>
+            </div>
+            <div class="evento-hora">Ayer 14:15</div>
+          </div>
+          <div class="evento-item">
+            <div class="evento-tipo" style="background:#2563eb"></div>
+            <div class="evento-info">
+              <div class="evento-txt">Parto — Ovino #OV-23 · 1 cría sana</div>
+              <div class="evento-sub">Cría hembra 4.2kg. Sin complicaciones.</div>
+            </div>
+            <div class="evento-hora">Ayer 06:45</div>
+          </div>
+          <div class="evento-item">
+            <div class="evento-tipo" style="background:#7C3AED"></div>
+            <div class="evento-info">
+              <div class="evento-txt">Pesaje mensual — Porcino completo</div>
+              <div class="evento-sub">32 animales. Promedio 95.4kg (+3.2 vs mayo)</div>
+            </div>
+            <div class="evento-hora">Hace 2d</div>
+          </div>
+          <div class="evento-item">
+            <div class="evento-tipo" style="background:#D4A017"></div>
+            <div class="evento-info">
+              <div class="evento-txt">Revisión colmenas Apícola — 12 colmenas</div>
+              <div class="evento-sub">Reina activa en 11/12. Colmena AM-05 requiere reina.</div>
+            </div>
+            <div class="evento-hora">Hace 3d</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /view-wrap -->
+
+  <nav>
+    <button class="tab-btn active" id="tab-inicio" onclick="switchTab('inicio')">
+      <span class="tab-icon">🏡</span><span class="tab-label">Inicio</span>
+    </button>
+    <button class="tab-btn" id="tab-rebano" onclick="switchTab('rebano')">
+      <span class="tab-icon">🐾</span><span class="tab-label">Rebaño</span>
+    </button>
+    <button class="tab-btn" id="tab-oro" onclick="switchTab('oro')">
+      <span class="tab-icon">🥇</span><span class="tab-label">Oro Puro</span>
+    </button>
+    <button class="tab-btn" id="tab-salud" onclick="switchTab('salud')">
+      <span class="tab-icon">🩺</span><span class="tab-label">Salud</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ── SUPABASE CONFIG ──
+const SB_URL_DEFAULT = 'https://gizfikiwsjylemdrpvkx.supabase.co';
+const SB_KEY_DEFAULT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpemZpa2l3c2p5bGVtZHJwdmt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNjkzOTEsImV4cCI6MjA5NTg0NTM5MX0.SDTOM0hkvywyCLOYIBUmgnwk6hRS8ZoeQEAYYWtsjXs';
+let sb = null;
+
+function loadConfig() {
+  return {
+    url: localStorage.getItem('am_url') || SB_URL_DEFAULT,
+    key: localStorage.getItem('am_key') || SB_KEY_DEFAULT,
+  };
+}
+async function saveConfig() {
+  const url = document.getElementById('cfg-url').value.trim();
+  const key = document.getElementById('cfg-key').value.trim();
+  const err = document.getElementById('cfg-err');
+  err.style.display = 'none';
+  if (!url.startsWith('https://') || !key.startsWith('eyJ')) { err.style.display = 'block'; return; }
+  localStorage.setItem('am_url', url);
+  localStorage.setItem('am_key', key);
+  closeConfig();
+  await connectSupabase(url, key);
+}
+function openConfig() {
+  const { url, key } = loadConfig();
+  document.getElementById('cfg-url').value = url;
+  document.getElementById('cfg-key').value = key;
+  document.getElementById('cfg-err').style.display = 'none';
+  document.getElementById('cfg-modal').classList.add('open');
+}
+function closeConfig() { document.getElementById('cfg-modal').classList.remove('open'); }
+
+async function connectSupabase(url, key) {
+  try {
+    sb = window.supabase.createClient(url, key);
+    const { error } = await sb.from('animales').select('id').limit(1);
+    if (error && error.code !== 'PGRST116') throw error;
+    setStatus('live');
+    loadAnimalesFromSupabase();
+  } catch (e) {
+    console.warn('Supabase no disponible, usando datos demo:', e.message);
+    setStatus('demo');
+  }
+}
+
+function setStatus(mode) {
+  const dot  = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  const map  = { demo: 'sdot-demo', live: 'sdot-live', err: 'sdot-err' };
+  dot.className = 'sdot ' + (map[mode] || 'sdot-demo');
+  text.textContent = mode === 'live' ? 'EN VIVO' : mode === 'err' ? 'ERROR' : 'DEMO';
+}
+
+// ── DATOS DE LAS 7 ESPECIES ──
+const ESPECIES = {
+  bovino:  { icon: '🐄', nombre: 'Bovino',   color: '#B45309', bg: '#FEF3C7', metricNombre: 'Leche / día', metricUnit: 'L',  total: 45, metricPromedio: 18.4 },
+  porcino: { icon: '🐷', nombre: 'Porcino',  color: '#DB2777', bg: '#FCE7F3', metricNombre: 'Ganancia',    metricUnit: 'g/d', total: 32, metricPromedio: 782 },
+  ovino:   { icon: '🐑', nombre: 'Ovino',    color: '#7C3AED', bg: '#EDE9FE', metricNombre: 'Lana / año',  metricUnit: 'kg',  total: 28, metricPromedio: 3.2 },
+  caprino: { icon: '🐐', nombre: 'Caprino',  color: '#D97706', bg: '#FEF3C7', metricNombre: 'Leche / día', metricUnit: 'L',   total: 19, metricPromedio: 2.1 },
+  equino:  { icon: '🐴', nombre: 'Equino',   color: '#374151', bg: '#F3F4F6', metricNombre: 'Condición',   metricUnit: '/5',  total: 8,  metricPromedio: 4.2 },
+  aviar:   { icon: '🐔', nombre: 'Aviar',    color: '#D97706', bg: '#FFFBEB', metricNombre: 'Huevos/año',  metricUnit: 'ud',  total: 150, metricPromedio: 312 },
+  apicola: { icon: '🐝', nombre: 'Apícola',  color: '#D4A017', bg: '#FEF3C7', metricNombre: 'Miel/colmena',metricUnit: 'kg', total: 12, metricPromedio: 18.5 },
+};
+
+// ── ANIMALES DEMO (mock data realista) ──
+const ANIMALES_DEMO = [
+  // BOVINO
+  { id:'BV-001', nombre:'La Consentida', especie:'bovino', raza:'Holstein',   edad:5, peso:680, produccion:24.0, score:94, historial:[{tipo:'verde',txt:'Score Oro Puro mantenido',fecha:'Jun 25'},{ tipo:'azul',txt:'Parto sin complicaciones',fecha:'Mar 12'},{tipo:'verde',txt:'Vacuna FA aplicada',fecha:'Jun 27'}] },
+  { id:'BV-002', nombre:'Manchada',      especie:'bovino', raza:'Suizo',      edad:4, peso:620, produccion:19.2, score:83, historial:[{tipo:'verde',txt:'Pesaje mensual OK',fecha:'Jun 15'},{tipo:'azul',txt:'Inseminación artificial',fecha:'Abr 3'}] },
+  { id:'BV-003', nombre:'Pinta',         especie:'bovino', raza:'Cebú',       edad:6, peso:580, produccion:15.8, score:62, historial:[{tipo:'amarillo',txt:'Producción por debajo del promedio',fecha:'Jun 20'}] },
+  { id:'BV-004', nombre:'Negra Linda',   especie:'bovino', raza:'Holstein',   edad:3, peso:560, produccion:20.1, score:80, historial:[{tipo:'verde',txt:'Primera lactancia exitosa',fecha:'May 30'}] },
+  { id:'BV-005', nombre:'Toscana',       especie:'bovino', raza:'Suizo',      edad:7, peso:640, produccion:16.5, score:58, historial:[{tipo:'amarillo',txt:'Vejez próxima — revisar descarte',fecha:'Jun 10'}] },
+  // PORCINO
+  { id:'PC-001', nombre:'Gordita',       especie:'porcino', raza:'Yorkshire',  edad:2, peso:118, produccion:860,  score:91, historial:[{tipo:'verde',txt:'Top ganancia de peso',fecha:'Jun 22'},{tipo:'azul',txt:'Último parto: 11 lechones',fecha:'May 5'}] },
+  { id:'PC-002', nombre:'Negra Reina',   especie:'porcino', raza:'Duroc',      edad:3, peso:105, produccion:810,  score:85, historial:[{tipo:'verde',txt:'Conforme al plan alimenticio',fecha:'Jun 18'}] },
+  { id:'PC-003', nombre:'Rosada',        especie:'porcino', raza:'Landrace',   edad:2, peso:96,  produccion:775,  score:70, historial:[{tipo:'azul',txt:'Parto — 9 lechones',fecha:'Abr 28'}] },
+  { id:'PC-004', nombre:'Blanquita',     especie:'porcino', raza:'Yorkshire',  edad:1, peso:82,  produccion:720,  score:55, historial:[{tipo:'azul',txt:'Primer ciclo reproductivo',fecha:'Jun 5'}] },
+  // OVINO
+  { id:'OV-001', nombre:'Perla',         especie:'ovino',  raza:'Rambouillet', edad:3, peso:54,  produccion:4.1,  score:89, historial:[{tipo:'verde',txt:'Lana premium calidad A',fecha:'Jun 10'},{tipo:'azul',txt:'Parto — 2 crías',fecha:'Mar 20'}] },
+  { id:'OV-002', nombre:'Flor',          especie:'ovino',  raza:'Merino',      edad:4, peso:51,  produccion:3.8,  score:82, historial:[{tipo:'verde',txt:'Esquila completada',fecha:'May 28'}] },
+  { id:'OV-003', nombre:'Luna',          especie:'ovino',  raza:'Pelibuey',    edad:2, peso:44,  produccion:2.9,  score:58, historial:[{tipo:'azul',txt:'Primera esquila',fecha:'Jun 1'}] },
+  // CAPRINO
+  { id:'CP-001', nombre:'Lunares',       especie:'caprino', raza:'Nubia',      edad:4, peso:46,  produccion:3.1,  score:88, historial:[{tipo:'verde',txt:'Leche calidad premium',fecha:'Jun 24'},{tipo:'verde',txt:'Parto gemelar exitoso',fecha:'Feb 14'}] },
+  { id:'CP-002', nombre:'Blanquita',     especie:'caprino', raza:'Saanen',     edad:3, peso:42,  produccion:2.6,  score:75, historial:[{tipo:'azul',txt:'Control de brucelosis negativo',fecha:'Jun 1'}] },
+  { id:'CP-007', nombre:'Flaca',         especie:'caprino', raza:'Criolla',    edad:5, peso:28,  produccion:1.2,  score:21, historial:[{tipo:'rojo',txt:'Peso crítico — bajo mínimo',fecha:'Jun 27'},{tipo:'amarillo',txt:'Suplemento vitamínico iniciado',fecha:'Jun 26'}] },
+  // EQUINO
+  { id:'EQ-001', nombre:'Trueno',        especie:'equino',  raza:'Cuarto Milla',edad:6, peso:480, produccion:4.8, score:92, historial:[{tipo:'verde',txt:'Condición corporal excelente',fecha:'Jun 20'},{tipo:'verde',txt:'Herraje y desparasitación',fecha:'May 30'}] },
+  { id:'EQ-002', nombre:'Estrella',      especie:'equino',  raza:'Azteca',      edad:4, peso:440, produccion:4.5, score:85, historial:[{tipo:'verde',txt:'Entrenamiento avanzado',fecha:'Jun 15'}] },
+  { id:'EQ-003', nombre:'Palomo',        especie:'equino',  raza:'Criollo',     edad:8, peso:380, produccion:3.6, score:55, historial:[{tipo:'amarillo',txt:'Vejez — control articular',fecha:'Jun 8'}] },
+  // AVIAR
+  { id:'AV-001', nombre:'Lote Rojo A',   especie:'aviar',  raza:'Leghorn Blanca',edad:1,peso:1.9, produccion:340, score:90, historial:[{tipo:'verde',txt:'340 huevos/año · récord lote',fecha:'Jun 25'},{tipo:'verde',txt:'Newcastle vacuna aplicada',fecha:'Abr 10'}] },
+  { id:'AV-002', nombre:'Lote Café B',   especie:'aviar',  raza:'Rhode Island', edad:2, peso:2.2, produccion:315, score:81, historial:[{tipo:'verde',txt:'Producción estable',fecha:'Jun 22'}] },
+  { id:'AV-003', nombre:'Lote Negro C',  especie:'aviar',  raza:'Plymouth Rock',edad:2, peso:2.4, produccion:268, score:52, historial:[{tipo:'amarillo',txt:'Producción 18% bajo promedio',fecha:'Jun 27'}] },
+  // APÍCOLA
+  { id:'AP-001', nombre:'Colmena Rey A', especie:'apicola', raza:'Italiana',    edad:3, peso:22, produccion:26.5, score:93, historial:[{tipo:'verde',txt:'26.5kg miel · mejor colmena',fecha:'Jun 24'},{tipo:'verde',txt:'Reina activa · 48k abejas',fecha:'Jun 15'}] },
+  { id:'AP-002', nombre:'Colmena Sol B', especie:'apicola', raza:'Carniola',    edad:2, peso:20, produccion:22.0, score:84, historial:[{tipo:'verde',txt:'22kg miel esta temporada',fecha:'Jun 24'}] },
+  { id:'AP-003', nombre:'Colmena Luna C',especie:'apicola', raza:'Italiana',    edad:1, peso:16, produccion:14.0, score:60, historial:[{tipo:'azul',txt:'Colmena en crecimiento',fecha:'Jun 10'}] },
+  { id:'AP-005', nombre:'Colmena AM-05', especie:'apicola', raza:'Africanizada',edad:2, peso:18, produccion:12.0, score:42, historial:[{tipo:'rojo',txt:'Reina muerta — requiere reemplazo',fecha:'Jun 25'}] },
+];
+
+let animalesMostrados = [...ANIMALES_DEMO];
+
+// ── SCORE HELPERS ──
+function getCategoria(score) {
+  if (score >= 80) return { label: '🥇 ORO PURO',  css: 'oro',   badge: 'badge-oro' };
+  if (score >= 50) return { label: '🥈 Plata',      css: 'plata', badge: 'badge-plata' };
+  return            { label: '📊 Regular',           css: '',      badge: 'badge-reg' };
+}
+function scoreColor(score) {
+  if (score >= 80) return 'var(--oro)';
+  if (score >= 50) return '#64748B';
+  return 'var(--rojo)';
+}
+
+// ── RENDER DASHBOARD ──
+function renderDashboard() {
+  const grid = document.getElementById('especies-grid');
+  grid.innerHTML = Object.entries(ESPECIES).map(([key, e]) => {
+    const oroCount = ANIMALES_DEMO.filter(a => a.especie === key && a.score >= 80).length;
+    const total    = e.total;
+    const hasOro   = oroCount > 0;
+    return `
+      <div class="especie-card" onclick="switchTabAndFilter('rebano','${key}')">
+        <div class="especie-top">
+          <span class="especie-icon">${e.icon}</span>
+          ${hasOro ? `<span class="especie-badge-oro">ORO ${oroCount}</span>` : ''}
+        </div>
+        <div class="especie-nombre">${e.nombre}</div>
+        <div class="especie-count">${total} animales</div>
+        <div class="especie-metric">
+          <div>
+            <div class="especie-metric-val" style="color:${e.color}">${e.metricPromedio}${e.metricUnit}</div>
+            <div class="especie-metric-lbl">${e.metricNombre}</div>
+          </div>
+          <span style="font-size:20px">${e.icon}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  setTimeout(() => { const f = document.getElementById('oro-fill'); if (f) f.style.width = '74%'; }, 500);
+}
+
+// ── RENDER REBAÑO ──
+function renderAnimales(lista) {
+  const el = document.getElementById('animal-list');
+  if (!lista.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--texto-sub)">Sin animales encontrados</div>';
+    return;
+  }
+  el.innerHTML = lista.sort((a,b) => b.score - a.score).map(a => {
+    const esp = ESPECIES[a.especie];
+    const cat = getCategoria(a.score);
+    return `
+      <div class="animal-card ${cat.css}" onclick="showDetail('${a.id}')">
+        <div class="a-icon" style="background:${esp?.bg || '#F8FAFC'}">
+          ${esp?.icon || '🐾'}
+        </div>
+        <div class="a-info">
+          <div class="a-nombre">
+            ${a.nombre}
+            <span class="${cat.badge}">${cat.label.split(' ')[0]} ${cat.label.split(' ').slice(1).join(' ')}</span>
+          </div>
+          <div class="a-sub">${a.id} · ${esp?.nombre || a.especie} · ${a.raza} · ${a.peso}kg</div>
+        </div>
+        <div class="a-right">
+          <div class="a-score" style="color:${scoreColor(a.score)}">${a.score}</div>
+          <div class="a-score-lbl">score</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filtrarAnimales() {
+  const q   = document.getElementById('search-input').value.toLowerCase();
+  const esp = document.getElementById('filter-especie').value;
+  const filtrados = ANIMALES_DEMO.filter(a =>
+    (a.nombre.toLowerCase().includes(q) || a.id.toLowerCase().includes(q)) &&
+    (esp === '' || a.especie === esp)
+  );
+  renderAnimales(filtrados);
+}
+
+// ── RENDER ORO PURO ──
+function renderOroPuro() {
+  const oroAnimales = ANIMALES_DEMO
+    .filter(a => a.score >= 80)
+    .sort((a, b) => b.score - a.score);
+
+  document.getElementById('oro-count').textContent = oroAnimales.length;
+
+  document.getElementById('oro-list').innerHTML = oroAnimales.map((a, i) => {
+    const esp = ESPECIES[a.especie];
+    const metricVal = a.especie === 'aviar' ? `${a.produccion} huevos/año`
+      : a.especie === 'apicola' ? `${a.produccion}kg miel`
+      : a.especie === 'porcino' ? `${a.produccion}g/día`
+      : a.especie === 'equino'  ? `Condición ${a.produccion}/5`
+      : `${a.produccion}${esp?.metricUnit || ''} ${esp?.metricNombre || ''}`;
+    return `
+      <div class="oro-item" onclick="showDetail('${a.id}')">
+        <div class="oro-rank">${i + 1}</div>
+        <div class="oro-item-ico">${esp?.icon || '🐾'}</div>
+        <div class="oro-item-info">
+          <div class="oro-item-nombre">${a.nombre}</div>
+          <div class="oro-item-esp">${esp?.nombre || a.especie} · ${a.id} · ${a.raza}</div>
+        </div>
+        <div class="oro-item-right">
+          <div class="oro-item-score">${a.score}</div>
+          <div class="oro-item-metric">${metricVal}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Desempeño por especie en oro
+  const oroList = document.getElementById('oro-especies-list');
+  oroList.innerHTML = Object.entries(ESPECIES).map(([key, e]) => {
+    const oroE = ANIMALES_DEMO.filter(a => a.especie === key && a.score >= 80);
+    const pct  = Math.round((oroE.length / e.total) * 100);
+    return `
+      <div class="actividad-item">
+        <div class="act-icon" style="background:${e.bg || '#F8FAFC'};font-size:22px">${e.icon}</div>
+        <div class="act-info">
+          <div class="act-txt">${e.nombre} — ${oroE.length} de ${e.total} animales Oro</div>
+          <div class="act-sub" style="display:flex;align-items:center;gap:6px;margin-top:4px">
+            <div style="flex:1;height:4px;background:#E2E8F0;border-radius:2px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${pct>=20?'var(--oro)':'#94A3B8'};border-radius:2px"></div>
+            </div>
+            <span style="font-size:11px;font-weight:700;color:${pct>=20?'var(--oro-dark)':'var(--texto-sub)'}">${pct}%</span>
+          </div>
+        </div>
+        <div class="act-time" style="font-size:13px;font-weight:800;color:var(--oro)">${oroE.length}🥇</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── ANIMAL DETAIL SHEET ──
+function showDetail(id) {
+  const a = ANIMALES_DEMO.find(x => x.id === id);
+  if (!a) return;
+  const esp = ESPECIES[a.especie];
+  const cat = getCategoria(a.score);
+
+  document.getElementById('d-icon').textContent    = esp?.icon || '🐾';
+  document.getElementById('d-nombre').textContent  = a.nombre;
+  document.getElementById('d-id').textContent      = `${a.id} · ${esp?.nombre || a.especie} · ${a.raza}`;
+  document.getElementById('d-score').textContent   = a.score;
+  document.getElementById('d-cat').textContent     = cat.label;
+
+  const metricVal = a.especie === 'aviar' ? `${a.produccion} huevos/año`
+    : a.especie === 'apicola' ? `${a.produccion} kg miel`
+    : a.especie === 'porcino' ? `${a.produccion} g/día`
+    : a.especie === 'equino'  ? `${a.produccion}/5`
+    : `${a.produccion} ${esp?.metricUnit || ''}`;
+
+  document.getElementById('d-metrics').innerHTML = `
+    <div class="sheet-metric">
+      <div class="sheet-metric-lbl">Peso vivo</div>
+      <div class="sheet-metric-val">${a.peso} <span class="sheet-metric-unit">kg</span></div>
+    </div>
+    <div class="sheet-metric">
+      <div class="sheet-metric-lbl">Edad</div>
+      <div class="sheet-metric-val">${a.edad} <span class="sheet-metric-unit">años</span></div>
+    </div>
+    <div class="sheet-metric">
+      <div class="sheet-metric-lbl">${esp?.metricNombre || 'Producción'}</div>
+      <div class="sheet-metric-val" style="font-size:15px">${metricVal}</div>
+    </div>
+    <div class="sheet-metric">
+      <div class="sheet-metric-lbl">Categoría</div>
+      <div class="sheet-metric-val" style="font-size:15px">${cat.label}</div>
+    </div>
+  `;
+
+  document.getElementById('d-events').innerHTML = (a.historial || []).map(h => `
+    <div class="sheet-event">
+      <div class="sheet-event-dot" style="background:${
+        h.tipo==='verde'?'#16a34a':h.tipo==='azul'?'#2563eb':h.tipo==='rojo'?'#DC2626':'#F59E0B'
+      }"></div>
+      <div class="sheet-event-txt">${h.txt}</div>
+      <div class="sheet-event-date">${h.fecha}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('detail-sheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSheet() {
+  document.getElementById('detail-sheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('detail-sheet').addEventListener('click', function(e) {
+  if (e.target === this) closeSheet();
+});
+
+// ── TAB SWITCHING ──
+function switchTab(tab) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+function switchTabAndFilter(tab, especie) {
+  switchTab(tab);
+  document.getElementById('filter-especie').value = especie;
+  document.getElementById('search-input').value = '';
+  filtrarAnimales();
+}
+
+// ── SUPABASE LOAD (si disponible) ──
+async function loadAnimalesFromSupabase() {
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('animales').select('*').order('score', { ascending: false });
+    if (error) throw error;
+    if (data && data.length > 0) {
+      animalesMostrados = data;
+      renderAnimales(animalesMostrados);
+      renderOroPuro();
+    }
+  } catch (e) {
+    console.warn('Usando datos demo (Supabase no conectado)');
+  }
+}
+
+// ── INIT ──
+renderDashboard();
+renderAnimales(ANIMALES_DEMO);
+renderOroPuro();
+
+(async () => {
+  const { url, key } = loadConfig();
+  await connectSupabase(url, key);
+})();
+</script>
+</body>
+</html>
