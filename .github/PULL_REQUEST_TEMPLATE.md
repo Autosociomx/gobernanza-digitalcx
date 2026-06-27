@@ -1,29 +1,33 @@
-# Contribution Guide
+# Descripción
 
-We welcome your contributions to this repository. To ensure elegant code style and better code quality, we have prepared
-the following contribution guidelines.
+<!-- ¿Qué cambia este PR y por qué? -->
 
-## What We Accept
+## Módulo afectado
 
-+ This PR fixes a typo or improves the documentation (if this is the case, you may skip the other checks).
-+ This PR fixes a specific issue — please reference the issue number in the PR description. Make sure your code strictly
-  follows the coding standards below.
-+ This PR introduces a new feature — please clearly explain the necessity and implementation of the feature. Make sure
-  your code strictly follows the coding standards below.
+- [ ] ConectaX Salud (`apps/salud/`)
+- [ ] Documentación (`docs/`)
+- [ ] Configuración / infraestructura
+- [ ] Otro: ___________
 
-## Code Style Guide
+## Tipo de cambio
 
-Good code style is an art. We have prepared a `pre-commit` hook to enforce consistent code
-formatting across the project. You can clean up your code following the steps below:
+- [ ] Nueva funcionalidad
+- [ ] Corrección de error
+- [ ] Mejora de rendimiento o accesibilidad
+- [ ] Refactor sin cambio de comportamiento
+- [ ] Documentación
 
-```shell
-pre-commit run --all-files
-```
+## Cómo probar
 
-If your code complies with the standards, you should not see any errors.
+<!-- Pasos para verificar que el cambio funciona correctamente -->
 
-## Naming Conventions
+1. 
+2. 
+3. 
 
-+ Please use **English** for naming; do not use Pinyin or other languages. All comments should also be in English.
-+ Follow **PEP8** naming conventions strictly, and use underscores to separate words. Avoid meaningless names such as
-  `a`, `b`, `c`.
+## Checklist
+
+- [ ] El código sigue el estilo del proyecto (sin frameworks innecesarios)
+- [ ] No se exponen API keys ni datos sensibles
+- [ ] Los cambios en el frontend se probaron en móvil (responsivo)
+- [ ] Los cambios en Netlify Functions se probaron con `netlify dev`
