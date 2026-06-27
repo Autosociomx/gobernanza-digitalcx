@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#15803d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>RutaViva — Tepic en tiempo real</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; background: #f0fdf4; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; color: #1e293b; }
+
+#app { height: 100dvh; display: flex; flex-direction: column; }
+
+/* ── HEADER ── */
+header {
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+  color: white;
+  padding: 12px 16px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  z-index: 100;
+}
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-icon { font-size: 22px; }
+.logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.logo-sub { font-size: 11px; opacity: 0.75; letter-spacing: 0.3px; }
+.demo-badge {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: 3px 7px;
+  border-radius: 4px;
+}
+
+/* ── VIEW SHELL ── */
+.view-wrap { flex: 1; position: relative; overflow: hidden; }
+.view {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.view.active { display: flex; }
+
+/* ── PASAJERO ── */
+#map { flex: 1; min-height: 0; z-index: 1; }
+
+.route-chips {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 500;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.route-chips::-webkit-scrollbar { display: none; }
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: white;
+  border: none;
+  border-radius: 20px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.chip.dim { opacity: 0.38; }
+.chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.arrivals {
+  flex-shrink: 0;
+  background: white;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+  max-height: 210px;
+  overflow-y: auto;
+  z-index: 10;
+}
+.arrivals-header {
+  position: sticky;
+  top: 0;
+  background: white;
+  padding: 12px 16px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+  z-index: 1;
+}
+.arrivals-title { font-size: 13px; font-weight: 700; color: #374151; }
+.live-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #16a34a;
+  font-weight: 700;
+  background: #dcfce7;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+.live-dot-sm {
+  width: 6px;
+  height: 6px;
+  background: #16a34a;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.4); }
+}
+.arrival-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 12px;
+  border-bottom: 1px solid #f8fafc;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.arrival-row:last-child { border-bottom: none; }
+.arrival-row:active { background: #f0fdf4; }
+.arrival-bar { width: 4px; height: 40px; border-radius: 4px; flex-shrink: 0; }
+.arrival-info { flex: 1; min-width: 0; }
+.arrival-name { font-size: 14px; font-weight: 700; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arrival-dest { font-size: 11px; color: #6b7280; margin-top: 1px; }
+.arrival-time { text-align: right; flex-shrink: 0; }
+.arrival-mins { font-size: 22px; font-weight: 800; color: #16a34a; line-height: 1; }
+.arrival-mins-unit { font-size: 11px; color: #6b7280; }
+.arrival-dist { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+/* ── CHOFER ── */
+#view-chofer {
+  background: #f8fafc;
+  overflow-y: auto;
+  padding: 16px;
+  gap: 12px;
+}
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+.route-select {
+  width: 100%;
+  padding: 12px 40px 12px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  background: #f9fafb;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 22px;
+  cursor: pointer;
+}
+.route-select:focus { outline: none; border-color: #16a34a; }
+.gps-row { display: flex; align-items: center; gap: 14px; }
+.gps-icon-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+.gps-icon-wrap.on { background: #dcfce7; }
+.gps-dot {
+  width: 18px;
+  height: 18px;
+  background: #9ca3af;
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+.gps-dot.on { background: #16a34a; animation: pulse 1.5s infinite; }
+.gps-text-label { font-size: 14px; font-weight: 700; color: #111827; }
+.gps-text-sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
+.metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.metric-box { background: #f9fafb; border-radius: 10px; padding: 12px 8px; text-align: center; }
+.metric-val { font-size: 24px; font-weight: 800; color: #16a34a; line-height: 1; }
+.metric-unit { font-size: 10px; color: #6b7280; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
+.btn-main {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-main:active { transform: scale(0.97); }
+.btn-go { background: linear-gradient(135deg, #16a34a, #15803d); color: white; box-shadow: 0 4px 14px rgba(22,163,74,0.35); }
+.btn-stop { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 14px rgba(239,68,68,0.35); }
+.info-tip { text-align: center; font-size: 12px; color: #6b7280; line-height: 1.7; }
+
+/* ── PATRÓN ── */
+#view-patron {
+  background: #f8fafc;
+  overflow-y: auto;
+  padding: 16px;
+  gap: 12px;
+}
+.stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.stat-box {
+  background: white;
+  border-radius: 12px;
+  padding: 14px 8px;
+  text-align: center;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+}
+.stat-num { font-size: 30px; font-weight: 800; line-height: 1; }
+.stat-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; }
+.n-blue { color: #2563eb; }
+.n-green { color: #16a34a; }
+.n-red { color: #ef4444; }
+
+.revenue-card {
+  background: linear-gradient(135deg, #15803d 0%, #1a6b40 100%);
+  border-radius: 14px;
+  padding: 18px;
+  color: white;
+}
+.rev-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+.rev-amount { font-size: 34px; font-weight: 800; line-height: 1; }
+.rev-amount span { font-size: 18px; font-weight: 400; opacity: 0.75; }
+.rev-sub { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+.rev-bar-wrap { margin-top: 16px; }
+.rev-bar-labels { display: flex; justify-content: space-between; font-size: 11px; opacity: 0.8; margin-bottom: 6px; }
+.rev-bar-bg { height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; }
+.rev-bar-fill { height: 100%; width: 67%; background: white; border-radius: 3px; transition: width 1s ease; }
+
+.section-hd { font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 8px; }
+.fleet-list { display: flex; flex-direction: column; gap: 8px; }
+.fleet-item {
+  background: white;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.unit-ico { font-size: 20px; width: 32px; text-align: center; }
+.unit-info { flex: 1; }
+.unit-id { font-size: 14px; font-weight: 700; color: #111827; }
+.unit-rt { font-size: 12px; color: #6b7280; }
+.unit-right { display: flex; align-items: center; gap: 8px; }
+.unit-spd { font-size: 12px; font-weight: 600; color: #374151; }
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 20px;
+}
+.badge-on { background: #dcfce7; color: #15803d; }
+.badge-off { background: #f3f4f6; color: #6b7280; }
+
+.footer-note {
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.7;
+  padding: 4px 0 8px;
+}
+
+/* ── BOTTOM TABS ── */
+nav {
+  display: flex;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.tab-btn {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 10px 4px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #9ca3af;
+  transition: color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab-btn.active { color: #16a34a; }
+.tab-icon { font-size: 20px; line-height: 1; }
+.tab-label { font-size: 10px; font-weight: 700; letter-spacing: 0.3px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="logo">
+      <span class="logo-icon">🚌</span>
+      <div>
+        <div class="logo-text">RutaViva</div>
+        <div class="logo-sub">Tepic, Nayarit</div>
+      </div>
+    </div>
+    <span class="demo-badge">DEMO MVP</span>
+  </header>
+
+  <div class="view-wrap">
+
+    <!-- ════ PASAJERO ════ -->
+    <div id="view-pasajero" class="view active">
+      <div class="route-chips" id="chips"></div>
+      <div id="map"></div>
+      <div class="arrivals">
+        <div class="arrivals-header">
+          <span class="arrivals-title">Próximos camiones cerca de ti</span>
+          <span class="live-pill"><span class="live-dot-sm"></span>EN VIVO</span>
+        </div>
+        <div id="arrivals-list"></div>
+      </div>
+    </div>
+
+    <!-- ════ CHOFER ════ -->
+    <div id="view-chofer" class="view">
+      <div class="card">
+        <div class="card-title">Selecciona tu ruta</div>
+        <select class="route-select" id="chofer-route">
+          <option value="">— Elige una ruta —</option>
+          <option>Progreso 1</option>
+          <option>Progreso 2</option>
+          <option>Alemania</option>
+          <option>Universidad</option>
+          <option>Aguacate-Centro</option>
+          <option>Lagos del Country</option>
+          <option>2 de Agosto</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Estado GPS</div>
+        <div class="gps-row">
+          <div class="gps-icon-wrap" id="gps-wrap">
+            <div class="gps-dot" id="gps-dot"></div>
+          </div>
+          <div>
+            <div class="gps-text-label" id="gps-label">GPS inactivo</div>
+            <div class="gps-text-sub" id="gps-sub">Inicia tu ruta para activar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="metrics-card" style="display:none;">
+        <div class="card-title">En ruta ahora</div>
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="metric-val" id="m-km">0.0</div>
+            <div class="metric-unit">km</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val" id="m-spd">0</div>
+            <div class="metric-unit">km/h</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val" id="m-time">0:00</div>
+            <div class="metric-unit">tiempo</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-main btn-go" id="btn-ruta" onclick="toggleRuta()">
+        ▶&nbsp; INICIAR RUTA
+      </button>
+
+      <div class="card info-tip">
+        💡 Tu posición se comparte <strong>solo mientras la ruta está activa</strong>.<br>
+        Los pasajeros ven tu camión en tiempo real.
+      </div>
+    </div>
+
+    <!-- ════ PATRÓN ════ -->
+    <div id="view-patron" class="view">
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-num n-blue">12</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num n-green" id="cnt-on">8</div>
+          <div class="stat-label">En ruta</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num n-red" id="cnt-off">4</div>
+          <div class="stat-label">Inactivas</div>
+        </div>
+      </div>
+
+      <div class="revenue-card">
+        <div class="rev-label">Ingresos proyectados · Junio 2026</div>
+        <div class="rev-amount">$2,400 <span>MXN</span></div>
+        <div class="rev-sub">12 unidades × $200 / mes · RutaViva Pro</div>
+        <div class="rev-bar-wrap">
+          <div class="rev-bar-labels"><span>Cobrado este mes</span><span>67%</span></div>
+          <div class="rev-bar-bg"><div class="rev-bar-fill" id="rev-fill"></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-hd">Flota en tiempo real</div>
+        <div class="fleet-list" id="fleet-list"></div>
+      </div>
+
+      <div class="footer-note">
+        Potenciado por <strong style="color:#16a34a;">RutaViva</strong> · ConnectX Nayarit<br>
+        <a href="#" style="color:#2563eb;text-decoration:none;font-size:11px;">+ Agregar unidades a tu línea</a>
+      </div>
+    </div>
+
+  </div><!-- /view-wrap -->
+
+  <nav>
+    <button class="tab-btn active" id="tab-pasajero" onclick="switchTab('pasajero')">
+      <span class="tab-icon">🗺️</span>
+      <span class="tab-label">Rutas</span>
+    </button>
+    <button class="tab-btn" id="tab-chofer" onclick="switchTab('chofer')">
+      <span class="tab-icon">📍</span>
+      <span class="tab-label">Chofer</span>
+    </button>
+    <button class="tab-btn" id="tab-patron" onclick="switchTab('patron')">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">Patrón</span>
+    </button>
+  </nav>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ── ROUTE DATA ──
+// Waypoints are approximate real streets of Tepic, Nayarit
+const ROUTES = {
+  'Progreso 1': {
+    color: '#dc2626',
+    dest: 'Col. Progreso Norte',
+    waypoints: [
+      [21.5043, -104.8984], // Plaza Principal
+      [21.5055, -104.8950],
+      [21.5075, -104.8910],
+      [21.5110, -104.8870],
+      [21.5150, -104.8840],
+      [21.5190, -104.8810],
+      [21.5235, -104.8782],
+    ]
+  },
+  'Alemania': {
+    color: '#2563eb',
+    dest: 'Col. Alemania / IMSS',
+    waypoints: [
+      [21.5043, -104.8984],
+      [21.5028, -104.8940],
+      [21.5008, -104.8878],
+      [21.4982, -104.8815],
+      [21.4956, -104.8752],
+      [21.4930, -104.8695],
+    ]
+  },
+  'Universidad': {
+    color: '#7c3aed',
+    dest: 'UANayarit Campus',
+    waypoints: [
+      [21.5043, -104.8984],
+      [21.5055, -104.9015],
+      [21.5072, -104.9058],
+      [21.5092, -104.9105],
+      [21.5118, -104.9152],
+      [21.5145, -104.9198],
+    ]
+  },
+  'Aguacate-Centro': {
+    color: '#d97706',
+    dest: 'Col. Aguacate Sur',
+    waypoints: [
+      [21.5043, -104.8984],
+      [21.4988, -104.8970],
+      [21.4932, -104.8954],
+      [21.4875, -104.8940],
+      [21.4818, -104.8928],
+      [21.4762, -104.8915],
+    ]
+  },
+  'Lagos del Country': {
+    color: '#059669',
+    dest: 'Lagos del Country',
+    waypoints: [
+      [21.5043, -104.8984],
+      [21.5058, -104.8865],
+      [21.5072, -104.8735],
+      [21.5086, -104.8608],
+      [21.5098, -104.8488],
+      [21.5110, -104.8385],
+    ]
+  },
+};
+
+const RNAMES = Object.keys(ROUTES);
+
+// ── MAP ──
+const map = L.map('map', {
+  center: [21.5075, -104.8990],
+  zoom: 13,
+  zoomControl: false,
+  attributionControl: false,
+});
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19,
+}).addTo(map);
+L.control.zoom({ position: 'topright' }).addTo(map);
+L.control.attribution({ prefix: '© OSM / Carto' }).addTo(map);
+
+// Draw route polylines
+const polylines = {};
+RNAMES.forEach(n => {
+  polylines[n] = L.polyline(ROUTES[n].waypoints, {
+    color: ROUTES[n].color,
+    weight: 5,
+    opacity: 0.85,
+    lineCap: 'round',
+    lineJoin: 'round',
+  }).addTo(map);
+});
+
+// User location marker at Plaza Principal
+L.circleMarker([21.5043, -104.8984], {
+  radius: 9,
+  color: '#1d4ed8',
+  fillColor: '#3b82f6',
+  fillOpacity: 1,
+  weight: 3,
+}).addTo(map).bindPopup('<b>Tu ubicación</b><br>Plaza Principal, Tepic');
+
+// ── BUS ANIMATION ──
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function posOnRoute(wps, t) {
+  const n = wps.length - 1;
+  const seg = Math.min(Math.floor(t * n), n - 1);
+  const st = (t * n) - seg;
+  const a = wps[seg], b = wps[seg + 1];
+  return [lerp(a[0], b[0], st), lerp(a[1], b[1], st)];
+}
+
+function makeBusIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:28px;height:28px;background:${color};border:3px solid white;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,0.28);">🚌</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+}
+
+const buses = {};
+RNAMES.forEach((n, i) => {
+  const t0 = (i * 0.19) % 1;
+  buses[n] = {
+    t: t0,
+    speed: 0.0010 + Math.random() * 0.0007,
+    marker: L.marker(posOnRoute(ROUTES[n].waypoints, t0), {
+      icon: makeBusIcon(ROUTES[n].color),
+      zIndexOffset: 1000,
+    }).addTo(map).bindPopup(`<b>${n}</b><br>${ROUTES[n].dest}`),
+  };
+});
+
+setInterval(() => {
+  RNAMES.forEach(n => {
+    const b = buses[n];
+    b.t = (b.t + b.speed) % 1;
+    b.marker.setLatLng(posOnRoute(ROUTES[n].waypoints, b.t));
+  });
+  refreshArrivals();
+}, 1600);
+
+// ── CHIPS ──
+const chipsEl = document.getElementById('chips');
+const visible = new Set(RNAMES);
+
+RNAMES.forEach(n => {
+  const chip = document.createElement('button');
+  chip.className = 'chip';
+  chip.innerHTML = `<span class="chip-dot" style="background:${ROUTES[n].color}"></span>${n}`;
+  chip.onclick = () => {
+    if (visible.has(n)) {
+      visible.delete(n);
+      chip.classList.add('dim');
+      polylines[n].setStyle({ opacity: 0.08 });
+      buses[n].marker.setOpacity(0.15);
+    } else {
+      visible.add(n);
+      chip.classList.remove('dim');
+      polylines[n].setStyle({ opacity: 0.85 });
+      buses[n].marker.setOpacity(1);
+    }
+    refreshArrivals();
+  };
+  chipsEl.appendChild(chip);
+});
+
+// ── ARRIVALS ──
+const USER = [21.5043, -104.8984];
+
+function distKm(a, b) {
+  const R = 6371;
+  const dLat = (b[0] - a[0]) * Math.PI / 180;
+  const dLon = (b[1] - a[1]) * Math.PI / 180;
+  const h = Math.sin(dLat / 2) ** 2 +
+    Math.cos(a[0] * Math.PI / 180) * Math.cos(b[0] * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+function refreshArrivals() {
+  const rows = RNAMES
+    .filter(n => visible.has(n))
+    .map(n => {
+      const pos = posOnRoute(ROUTES[n].waypoints, buses[n].t);
+      const d = distKm(USER, pos);
+      const mins = Math.max(1, Math.round((d / 18) * 60));
+      return { n, d, mins, color: ROUTES[n].color, dest: ROUTES[n].dest };
+    })
+    .sort((a, b) => a.mins - b.mins);
+
+  document.getElementById('arrivals-list').innerHTML = rows.map(r => `
+    <div class="arrival-row" onclick="flyToBus('${r.n}')">
+      <div class="arrival-bar" style="background:${r.color}"></div>
+      <div class="arrival-info">
+        <div class="arrival-name">${r.n}</div>
+        <div class="arrival-dest">${r.dest}</div>
+      </div>
+      <div class="arrival-time">
+        <div class="arrival-mins">${r.mins}</div>
+        <div class="arrival-mins-unit">min</div>
+        <div class="arrival-dist">${r.d < 1 ? (r.d * 1000).toFixed(0) + ' m' : r.d.toFixed(1) + ' km'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+refreshArrivals();
+
+function flyToBus(name) {
+  const pos = posOnRoute(ROUTES[name].waypoints, buses[name].t);
+  map.flyTo(pos, 15, { duration: 1 });
+  buses[name].marker.openPopup();
+}
+
+// ── TAB SWITCHING ──
+function switchTab(tab) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'pasajero') setTimeout(() => map.invalidateSize(), 50);
+}
+
+// ── CHOFER LOGIC ──
+let routeOn = false;
+let startTime = null;
+let simKm = 0;
+let choferInterval = null;
+
+function toggleRuta() {
+  const sel = document.getElementById('chofer-route').value;
+  if (!routeOn && !sel) {
+    const s = document.getElementById('chofer-route');
+    s.style.borderColor = '#ef4444';
+    s.focus();
+    setTimeout(() => s.style.borderColor = '#e5e7eb', 1800);
+    return;
+  }
+  routeOn = !routeOn;
+  const btn = document.getElementById('btn-ruta');
+  const dot = document.getElementById('gps-dot');
+  const wrap = document.getElementById('gps-wrap');
+  const mc = document.getElementById('metrics-card');
+  if (routeOn) {
+    btn.textContent = '■  FINALIZAR RUTA';
+    btn.className = 'btn-main btn-stop';
+    dot.className = 'gps-dot on';
+    wrap.className = 'gps-icon-wrap on';
+    document.getElementById('gps-label').textContent = 'GPS activo · Tepic, Nay.';
+    document.getElementById('gps-sub').textContent = '21.5043° N  104.8984° O';
+    mc.style.display = 'block';
+    startTime = Date.now();
+    simKm = 0;
+    choferInterval = setInterval(tickMetrics, 2000);
+  } else {
+    btn.textContent = '▶  INICIAR RUTA';
+    btn.className = 'btn-main btn-go';
+    dot.className = 'gps-dot';
+    wrap.className = 'gps-icon-wrap';
+    document.getElementById('gps-label').textContent = 'GPS inactivo';
+    document.getElementById('gps-sub').textContent = 'Inicia tu ruta para activar';
+    mc.style.display = 'none';
+    clearInterval(choferInterval);
+  }
+}
+
+function tickMetrics() {
+  const elapsed = (Date.now() - startTime) / 1000;
+  const m = Math.floor(elapsed / 60);
+  const s = Math.floor(elapsed % 60);
+  const spd = 12 + Math.round(Math.random() * 26);
+  simKm += spd * (2 / 3600);
+  document.getElementById('m-km').textContent = simKm.toFixed(1);
+  document.getElementById('m-spd').textContent = spd;
+  document.getElementById('m-time').textContent = m + ':' + String(s).padStart(2, '0');
+}
+
+// ── FLEET DATA ──
+const FLEET = [
+  { id: '#01', route: 'Progreso 1',       on: true,  spd: 24 },
+  { id: '#02', route: 'Progreso 1',       on: true,  spd: 31 },
+  { id: '#03', route: 'Progreso 1',       on: false, spd: 0  },
+  { id: '#04', route: 'Alemania',         on: true,  spd: 19 },
+  { id: '#05', route: 'Alemania',         on: true,  spd: 27 },
+  { id: '#06', route: 'Universidad',      on: true,  spd: 22 },
+  { id: '#07', route: 'Universidad',      on: false, spd: 0  },
+  { id: '#08', route: 'Aguacate-Centro',  on: true,  spd: 35 },
+  { id: '#09', route: 'Aguacate-Centro',  on: true,  spd: 18 },
+  { id: '#10', route: 'Lagos del Country',on: false, spd: 0  },
+  { id: '#11', route: 'Lagos del Country',on: true,  spd: 29 },
+  { id: '#12', route: 'Lagos del Country',on: false, spd: 0  },
+];
+
+function renderFleet() {
+  document.getElementById('fleet-list').innerHTML = FLEET.map(u => `
+    <div class="fleet-item">
+      <div class="unit-ico">🚌</div>
+      <div class="unit-info">
+        <div class="unit-id">Unidad ${u.id}</div>
+        <div class="unit-rt">${u.route}</div>
+      </div>
+      <div class="unit-right">
+        ${u.on ? `<div class="unit-spd">${u.spd} <span style="font-size:10px;color:#9ca3af">km/h</span></div>` : ''}
+        <span class="badge ${u.on ? 'badge-on' : 'badge-off'}">${u.on ? '● En ruta' : '○ Inactiva'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+renderFleet();
+
+// Simulate live speed fluctuation
+setInterval(() => {
+  FLEET.forEach(u => {
+    if (u.on) u.spd = Math.max(8, Math.min(48, u.spd + Math.round((Math.random() - 0.5) * 8)));
+  });
+  if (document.getElementById('view-patron').classList.contains('active')) renderFleet();
+}, 3200);
+
+// Animate revenue bar on load
+setTimeout(() => {
+  const fill = document.getElementById('rev-fill');
+  if (fill) fill.style.width = '67%';
+}, 400);
+</script>
+</body>
+</html>
