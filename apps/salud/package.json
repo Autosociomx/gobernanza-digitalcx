@@ -1,7 +1,10 @@
 {
-  "name": "conectax-demo",
-  "version": "1.0.0",
-  "description": "ConectaX - Demo de triaje digital para campaña Nayarit Digital",
+  "name": "conectax-salud",
+  "version": "1.1.0",
+  "description": "ConectaX Salud — Triaje médico digital con IA para Nayarit",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0"
   }

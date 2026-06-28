@@ -4,9 +4,24 @@
 [functions]
   node_bundler = "esbuild"
 
+# Headers de seguridad para todos los archivos estáticos
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
     Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none';"
+
+# Bloquear acceso directo a la carpeta de funciones como archivo estático
+[[headers]]
+  for = "/netlify/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+# Variables de entorno requeridas (documentadas, no sus valores)
+# Configurar en: Netlify → Site settings → Environment variables
+# ANTHROPIC_API_KEY = "sk-ant-..."
+# ALLOWED_ORIGIN   = "https://tu-dominio.netlify.app"

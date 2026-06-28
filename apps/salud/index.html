@@ -89,6 +89,17 @@
     select:focus, textarea:focus { border-color: var(--azul-claro); }
     textarea { height: 120px; resize: none; line-height: 1.5; }
     textarea::placeholder { color: #94A3B8; }
+    .error-box {
+      display: none;
+      background: #FEF2F2;
+      border-left: 4px solid #DC2626;
+      border-radius: 0 12px 12px 0;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      color: #991B1B;
+      font-size: 0.9rem;
+    }
+    .error-box.visible { display: block; }
     .btn-consultar {
       width: 100%;
       padding: 16px;
@@ -203,6 +214,7 @@
   </div>
 
   <div class="card" id="formCard">
+    <div class="error-box" id="errorBox" role="alert"></div>
     <label>Tu municipio</label>
     <select id="municipio">
       <option value="Tepic">Tepic</option>
@@ -285,22 +297,58 @@
 </footer>
 
 <script>
+  const URGENCIA_MAP = { 'ALTA': 'urgencia-alta', 'MEDIA': 'urgencia-media', 'BAJA': 'urgencia-baja' };
+  const FETCH_TIMEOUT_MS = 15000;
+
+  function mostrarError(msg) {
+    const box = document.getElementById('errorBox');
+    box.textContent = msg;
+    box.classList.add('visible');
+    document.getElementById('formCard').style.display = 'block';
+  }
+
+  function ocultarError() {
+    document.getElementById('errorBox').classList.remove('visible');
+  }
+
   async function consultar() {
     const sintomas = document.getElementById('sintomas').value.trim();
     const municipio = document.getElementById('municipio').value;
-    if (!sintomas) { alert('Por favor describe tus síntomas.'); return; }
+
+    if (!sintomas) {
+      mostrarError('Por favor describe tus síntomas antes de consultar.');
+      return;
+    }
+    if (sintomas.length > 2000) {
+      mostrarError('La descripción es demasiado larga. Por favor resúmela en menos de 2000 caracteres.');
+      return;
+    }
+
+    ocultarError();
     document.getElementById('formCard').style.display = 'none';
     document.getElementById('loading').classList.add('visible');
     document.getElementById('resultado').classList.remove('visible');
+
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
       const response = await fetch('/api/triage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sintomas, municipio })
+        body: JSON.stringify({ sintomas, municipio }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
       const data = await response.json();
-      const urgenciaMap = { 'ALTA': 'urgencia-alta', 'MEDIA': 'urgencia-media', 'BAJA': 'urgencia-baja' };
-      document.getElementById('semaforo').className = 'semaforo ' + (urgenciaMap[data.nivel_urgencia] || 'urgencia-media');
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error del servidor.');
+      }
+
+      const claseUrgencia = URGENCIA_MAP[data.nivel_urgencia] || 'urgencia-media';
+      document.getElementById('semaforo').className = 'semaforo ' + claseUrgencia;
       document.getElementById('semaforoEmoji').textContent = data.emoji || '🟡';
       document.getElementById('nivelUrgencia').textContent = 'Urgencia ' + (data.nivel_urgencia || 'MEDIA');
       document.getElementById('codigoDesc').textContent = data.descripcion_cie11 || '';
@@ -310,18 +358,24 @@
       document.getElementById('cieCodigo').textContent = 'Código CIE-11: ' + (data.codigo_cie11 || 'En análisis');
       document.getElementById('loading').classList.remove('visible');
       document.getElementById('resultado').classList.add('visible');
+
     } catch (error) {
       document.getElementById('loading').classList.remove('visible');
-      document.getElementById('formCard').style.display = 'block';
-      alert('Error al conectar con ConectaX. Por favor intenta de nuevo.');
+      const msg = error.name === 'AbortError'
+        ? 'La consulta tardó demasiado. Verifica tu conexión e intenta de nuevo.'
+        : (error.message || 'Error al conectar con ConectaX. Por favor intenta de nuevo.');
+      mostrarError(msg);
     }
   }
+
   function nuevaConsulta() {
     document.getElementById('resultado').classList.remove('visible');
     document.getElementById('sintomas').value = '';
+    ocultarError();
     document.getElementById('formCard').style.display = 'block';
     window.scrollTo(0, 0);
   }
+
   document.getElementById('sintomas').addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && e.ctrlKey) consultar();
   });
